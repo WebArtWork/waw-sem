@@ -1,5 +1,15 @@
 {
 	"name": "Sem",
-	"router": "index.js",
-	"dependencies": {}
+	"router": "index.js crud.js",
+	"priority": 999,
+	"dependencies": {
+		"method-override": "*",
+		"connect-mongo": "*",
+		"serve-favicon": "*",
+		"express-session": "*",
+		"cookie-parser": "*",
+		"body-parser": "*",
+		"express": "*",
+		"derer": "*"
+	}
 }
