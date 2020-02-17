@@ -2,6 +2,9 @@
 	"name": "Sem",
 	"router": "index.js crud.js",
 	"priority": 999,
+	"git": {
+		"repo": "https://github.com/WebArtWork/sem.git"
+	},
 	"dependencies": {
 		"method-override": "*",
 		"connect-mongo": "*",
