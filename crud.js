@@ -58,7 +58,8 @@ module.exports = function(waw) {
 			if(unique) Schema = process.cwd() + '/server/' + partName + '/schema.js';
 			if (!waw.fs.existsSync(Schema)) {
 				var data = waw.fs.readFileSync(__dirname+'/schema.js', 'utf8');
-				data = data.replace('REPLACE', waw.capitalize(crudName));
+				data = data.split('CNAME').join(crudName.toString().charAt(0).toUpperCase() + crudName.toString().substr(1).toLowerCase());
+				data = data.split('NAME').join(crudName);
 				waw.fs.writeFileSync(Schema, data, 'utf8');
 			}
 			Schema = require(Schema);
