@@ -81,7 +81,7 @@ module.exports = function(waw) {
 					if(typeof doc.create !== 'function'){
 						return res.json(false);
 					}
-					doc.create(req.body, req.user, sd);
+					doc.create(req.body, req.user, waw);
 					save(doc, res);
 				});
 			/*
@@ -143,6 +143,7 @@ module.exports = function(waw) {
 							_id: req.body._id,
 							moderators: req.user&&req.user._id
 						}, function(err, doc){
+							console.log(doc);
 							if(err||!doc){
 								err&&console.log(err);
 								return res.json(false);
