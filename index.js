@@ -61,7 +61,6 @@ module.exports = function(waw){
 			app.use(api, router);
 			return router;
 		}
-
 		waw.app = app;
 		waw.server = server;
 		waw.cookieParser = cookieParser;

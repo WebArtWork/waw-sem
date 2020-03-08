@@ -54,8 +54,8 @@ module.exports = function(waw) {
 		var add_crud = function(crud, part, unique=true){
 			var partName = part.name.toLowerCase();
 			var crudName = crud.name.toLowerCase();
-			var Schema = process.cwd() + '/server/' + partName + '/schema_' + crudName+ '.js';
-			if(unique) Schema = process.cwd() + '/server/' + partName + '/schema.js';
+			var Schema = part.__root + '/schema_' + crudName+ '.js';
+			if(unique) Schema = part.__root + '/schema.js';
 			if (!waw.fs.existsSync(Schema)) {
 				var data = waw.fs.readFileSync(__dirname+'/schema.js', 'utf8');
 				data = data.split('CNAME').join(crudName.toString().charAt(0).toUpperCase() + crudName.toString().substr(1).toLowerCase());
@@ -63,6 +63,9 @@ module.exports = function(waw) {
 				waw.fs.writeFileSync(Schema, data, 'utf8');
 			}
 			Schema = require(Schema);
+			if(typeof Schema == 'function' && !Schema.name){
+				Schema = Schema(waw);
+			}
 			var router = waw.router('/api/'+crudName);
 			var save = function(doc, res){
 				doc.save(function(err){
