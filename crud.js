@@ -142,11 +142,14 @@ module.exports = function(waw) {
 					let final_name = '_update_'+crudName;
 					if(upd.name) final_name += '_'+upd.name;
 					router.post("/update"+(upd.name||''), ensure('ensure'+final_name), function(req, res) {
-						Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
+						let q = Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
 							_id: req.body._id,
 							moderators: req.user&&req.user._id
-						}, function(err, doc){
-							console.log(doc);
+						})
+						if(typeof waw['select'+final_name] == 'function'){
+							q.select(waw['select'+final_name](req, res));
+						}
+						q.exec(function(err, doc){
 							if(err||!doc){
 								err&&console.log(err);
 								return res.json(false);
@@ -171,10 +174,14 @@ module.exports = function(waw) {
 					let final_name = '_unique_'+crudName;
 					if(upd.name) final_name += '_'+upd.name;
 					router.post("/unique"+(upd.name||''), ensure('ensure'+final_name), function(req, res) {
-						Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
+						let q = Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
 							_id: req.body._id,
 							moderators: req.user&&req.user._id
-						}, function(err, doc){
+						});
+						if(typeof waw['select'+final_name] == 'function'){
+							q.select(waw['select'+final_name](req, res));
+						}
+						q.exec(function(err, doc){
 							if(err||!doc) return res.json(false);
 							let query = waw['select'+final_name]&&waw['select'+final_name](req, res, upd);
 							if(!query){
