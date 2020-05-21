@@ -26,7 +26,7 @@ module.exports = function(waw) {
 				waw['populate_'+prefix] = config.populate;
 			}
 		}
-		const crudTypes = ['create', 'get', 'update', 'unique', 'delete'];
+		const crudTypes = ['create', 'get', 'fetch', 'update', 'unique', 'delete'];
 		waw.crud = function(part, config){
 			for (let i = 0; i < crudTypes.length; i++) {
 				if(Array.isArray(config[crudTypes[i]])){
@@ -135,6 +135,38 @@ module.exports = function(waw) {
 					}
 				}else if(typeof crud.get == 'string') crud_get(crud.get[i]);
 				else crud_get('');
+			/*
+			*	Fetch
+			*/
+				var crud_fetch = function(name){
+					let final_name = '_fetch_'+crudName;
+					if(name) final_name += '_'+name;
+					router.post("/fetch"+(name||''), ensure('ensure'+final_name), function(req, res) {
+						let q = Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
+							_id: req.body._id,
+							moderators: req.user&&req.user._id
+						})
+						if(typeof waw['select'+final_name] == 'function'){
+							q.select(waw['select'+final_name](req, res));
+						}
+						var populate = waw['populate'+final_name]&&waw['populate'+final_name](req, res)||false;
+						if(populate){
+							query.populate(populate);
+						}
+						q.exec(function(err, doc){
+							if(err||!doc){
+								err&&console.log(err);
+								return res.json(false);
+							}
+							res.json(doc);
+						});
+					});
+				}
+				if(Array.isArray(crud.fetch)){
+					for (var i = 0; i < crud.fetch.length; i++) {
+						crud_fetch(crud.fetch[i]);
+					}
+				}else crud_fetch('');
 			/*
 			*	Update
 			*/
