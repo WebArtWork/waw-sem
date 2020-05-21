@@ -1,0 +1,10 @@
+{
+	"name": "CNAME",
+	"router": "index.ts",
+	"crud": {
+		"update": {
+			"keys": ["name", "description"]
+		}
+	},
+	"dependencies": {}
+}
