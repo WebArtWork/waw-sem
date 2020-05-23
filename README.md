@@ -3,8 +3,8 @@
 
 ## Runners
 ### Generate new part
-`waw add PART_NAME REPO_LINK BRANCH`
-`waw add`
+`waw add PART_NAME REPO_LINK BRANCH`<br>
+`waw add`<br>
 `waw a`
 
 ## waw Script

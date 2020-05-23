@@ -42,21 +42,40 @@ const readline = require('readline').createInterface({
 			}
 		}
 		let folder = process.cwd()+'/server/'+params.new_part.name.toLowerCase();
-		fs.mkdirSync(folder, { recursive: true });
-		// index.js
-		fs.writeFileSync(folder+'/index.js', `module.exports = function(waw) {\n\t// add your router code\n};`, 'utf8');
-		// part.json
-		data = fs.readFileSync(__dirname+'/part/part.json', 'utf8');
-		data = rpl(data, 'CNAME', cname(params.new_part.name));
-		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-		fs.writeFileSync(folder+'/part.json', data, 'utf8');
-		// schema.js
-		data = fs.readFileSync(__dirname+'/part/schema.js', 'utf8');
-		data = rpl(data, 'CNAME', cname(params.new_part.name));
-		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-		fs.writeFileSync(folder+'/schema.js', data, 'utf8');
-		console.log('Part has been created');
-		process.exit(1);
+		if(params.argv.length > 1){
+			fs.mkdirSync(folder, { recursive: true });
+			let repo = params.git(folder);
+			repo.init(function(){
+				repo.addRemote('origin', params.argv[1], function(err){
+					repo.fetch('--all', function(err){
+						let branch = 'master';
+						if(params.argv.length>2){
+							branch = params.argv[2];
+						}
+						repo.reset('origin/'+branch, err=>{
+							console.log('Part has been created');
+							process.exit(1);
+						});
+					});
+				});
+			});
+		}else{
+			fs.mkdirSync(folder, { recursive: true });
+			// index.js
+			fs.writeFileSync(folder+'/index.js', `module.exports = function(waw) {\n\t// add your router code\n};`, 'utf8');
+			// part.json
+			data = fs.readFileSync(__dirname+'/part/part.json', 'utf8');
+			data = rpl(data, 'CNAME', cname(params.new_part.name));
+			data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
+			fs.writeFileSync(folder+'/part.json', data, 'utf8');
+			// schema.js
+			data = fs.readFileSync(__dirname+'/part/schema.js', 'utf8');
+			data = rpl(data, 'CNAME', cname(params.new_part.name));
+			data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
+			fs.writeFileSync(folder+'/schema.js', data, 'utf8');
+			console.log('Part has been created');
+			process.exit(1);
+		}
 	};
 	module.exports.add = new_part;
 	module.exports.a = new_part;
