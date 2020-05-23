@@ -62,10 +62,6 @@ module.exports = function(waw){
 			return router;
 		}
 		waw.app = app;
-		waw.server = server;
-		waw.cookieParser = cookieParser;
-		waw.methodOverride = methodOverride;
-		waw.bodyParser = bodyParser;
 	/*
 	*	Use
 	*/
@@ -97,15 +93,18 @@ module.exports = function(waw){
 			}				
 		}
 	/*
-	*	Support for 0.x version of waw until 2.0
+	*	Express Middleware Support
 	*/
-		waw._initRouter = waw.router;
-		waw._app = app;
 		waw.next = (req, res, next)=>next()
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
 			else res.json(false);
 		}
+	/*
+	*	Support for 0.x version of waw until 2.0
+	*/
+		waw._initRouter = waw.router;
+		waw._app = app;
 		waw._ensure = waw.ensure;
 		waw._config = waw.config;
 		waw._middleware = [];
