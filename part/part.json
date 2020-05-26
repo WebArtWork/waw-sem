@@ -1,6 +1,6 @@
 {
 	"name": "CNAME",
-	"router": "index.ts",
+	"router": "index.js",
 	"crud": {
 		"update": {
 			"keys": ["name", "description"]
