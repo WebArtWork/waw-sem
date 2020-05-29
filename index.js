@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
 const derer = require('derer');
+const io = require('socket.io')(server, { origins: '*:*'});
 module.exports = function(waw){
 	var sessionMaxAge = 365 * 24 * 60 * 60 * 1000;
 	if(typeof waw.config.session == 'number'){
@@ -163,6 +164,86 @@ module.exports = function(waw){
 		// derer.setFilter('translate', waw._tr);
 		waw._derer = derer;
 	/*
+	*	Sockets
+	*/
+		waw.socket = {
+			io: io,
+			emit: function(to, message, room=false){
+				if(room){
+					io.in(room).emit(to, message);
+				}else{
+					io.emit(to, message);
+				}
+			},
+			add: function(connection){
+				if(typeof connection == 'function') connections.push(connection);
+			}
+		}
+		let connections = [function(socket){
+			socket.on('create', function(content){
+				socket.broadcast.emit('create', content);
+			});
+			socket.on('update', function(content){
+				socket.broadcast.emit('update', content);
+			});
+			socket.on('unique', function(content){
+				socket.broadcast.emit('unique', content);
+			});
+			socket.on('delete', function(content){
+				socket.broadcast.emit('delete', content);
+			});
+		}];
+		io.on('connection', function (socket) {
+			for (var i = 0; i < connections.length; i++) {
+				if(typeof connections[i] == 'function'){
+					connections[i](socket);
+				}
+			}
+		});
+	/*
 	*	End of
 	*/
 }
+
+/*
+
+move to user
+waw.socket.add(function(socket){
+	if (socket.request.user) {
+		socket.join(socket.request.user._id);
+	}	
+})
+
+/*
+const passportSocketIo = require("passport.socketio");
+io.use(passportSocketIo.authorize({
+	passport: sd._passport,
+	cookieParser: cookieParser,
+	key: 'express.sid.'+sd._config.prefix,
+	secret: 'thisIsCoolSecretFromWaWFramework'+sd._config.prefix,
+	store: store,
+	success: function(data, accept) {
+		accept();
+	},
+	fail: function(data, message, error, accept) {
+		accept();
+	}
+}));
+
+// sending to sender-client only
+socket.emit('message', "this is a test");
+// sending to all clients, include sender
+io.emit('message', "this is a test");
+// sending to all clients except sender
+socket.broadcast.emit('message', "this is a test");
+// sending to all clients in 'game' room(channel) except sender
+socket.broadcast.to('game').emit('message', 'nice game');
+// sending to all clients in 'game' room(channel), include sender
+io.in('game').emit('message', 'cool game');
+// sending to sender client, only if they are in 'game' room(channel)
+socket.to('game').emit('message', 'enjoy the game');
+// sending to all clients in namespace 'myNamespace', include sender
+io.of('myNamespace').emit('message', 'gg');
+// sending to individual socketid
+socket.broadcast.to(socketid).emit('message', 'for your eyes only');
+*/
