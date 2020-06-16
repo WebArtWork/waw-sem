@@ -101,6 +101,19 @@ module.exports = function(waw){
 			if(req.user) next();
 			else res.json(false);
 		}
+		waw.role = function(roles){
+			if(typeof roles == 'string'){
+				roles = roles.split(' ');
+			}
+			return function(req, res, next){
+				if(req.user && req.user.is){
+					for (var i = 0; i < roles.length; i++) {
+						if(req.user.is[roles[i]]) return next();
+					}
+				}
+				res.json(false);
+			}
+		}
 	/*
 	*	Support for 0.x version of waw until 2.0
 	*/
