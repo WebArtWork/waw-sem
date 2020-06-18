@@ -67,12 +67,13 @@ module.exports = function(waw) {
 				Schema = Schema(waw);
 			}
 			var router = waw.router('/api/'+crudName);
-			var save = function(doc, res){
+			var save = function(doc, res, emit){
 				doc.save(function(err){
 					if(err){
 						console.log(err);
 						return res.json(false);
 					}
+					waw.emit(emit, doc);
 					res.json(doc);
 				});
 			}
@@ -85,7 +86,7 @@ module.exports = function(waw) {
 						return res.json(false);
 					}
 					doc.create(req.body, req.user, waw);
-					save(doc, res);
+					save(doc, res, crudName+'_create');
 				});
 			/*
 			*	Read
@@ -190,7 +191,7 @@ module.exports = function(waw) {
 								doc[upd.keys[i]] = req.body[upd.keys[i]];
 								doc.markModified(upd.keys[i]);
 							}
-							save(doc, res);
+							save(doc, res, crudName+'_update');
 						});
 					});
 				}
