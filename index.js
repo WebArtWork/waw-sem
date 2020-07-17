@@ -101,14 +101,18 @@ module.exports = function(waw){
 			if(req.user) next();
 			else res.json(false);
 		}
-		waw.role = function(roles){
+		waw.role = function(roles, extra){
 			if(typeof roles == 'string'){
 				roles = roles.split(' ');
 			}
 			return function(req, res, next){
 				if(req.user && req.user.is){
 					for (var i = 0; i < roles.length; i++) {
-						if(req.user.is[roles[i]]) return next();
+						if(req.user.is[roles[i]]){
+							if(extra) extra(req, res, next);
+							else next();
+							return;
+						}
 					}
 				}
 				res.json(false);
