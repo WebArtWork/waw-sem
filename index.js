@@ -63,6 +63,7 @@ module.exports = function(waw){
 			return router;
 		}
 		waw.app = app;
+		waw.express = express;
 	/*
 	*	Use
 	*/
