@@ -6,6 +6,7 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const derer = require('derer');
 const io = require('socket.io')(server, { origins: '*:*'});
 module.exports = function(waw){
@@ -218,6 +219,68 @@ module.exports = function(waw){
 				}
 			}
 		});
+	/* Files Management */
+		waw.dataUrlToLocation = function(dataUrl, loc, file, cb){
+			var base64Data = dataUrl.replace(/^data:image\/png;base64,/, '').replace(/^data:image\/jpeg;base64,/, '');
+			var decodeData = Buffer.from(base64Data, 'base64');
+			fs.mkdirSync(loc, { recursive: true });
+			fs.writeFile(loc+'/'+file, decodeData, cb);
+		}
+		waw.files = function(opts){
+			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
+				opts.schema.findOne(opts.query || {
+					_id: req.body._id
+				}, function(err, doc) {
+					if(err || !doc) return res.send(false);
+					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
+					waw.parallel([function(n) {
+						doc.save(n);
+					}, function(n) {
+						waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, doc._id + '.jpg', n);
+					}], function() {
+						res.json(doc.thumb);
+					});
+				});
+			});
+			waw.app.post("/api/"+opts.part+"/avatars", opts.ensure || waw.role('admin'), function(req, res) {
+				let custom = waw.mongoose.Types.ObjectId();
+				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg?' + Date.now();
+				waw.parallel([function(done) {
+					opts.schema.update(opts.query || { _id: req.body._id }, { $push: { thumbs: url } }, done);
+				}, function(n) {
+					waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, custom + '.jpg', n);
+				}], function() {
+					res.json(url);
+				});
+			});
+			waw.app.get("/api/"+opts.part+"/avatar/:file", function(req, res) {
+				res.sendFile(opts.dirname + req.params.file);
+			});
+		}
+		waw.ensure_file = function(opts, extra){
+			return function(req, res, next){
+				waw.parallel([function(done) {
+					if(req.body.thumb){
+						if(!req.body._id) req.body._id = waw.mongoose.Types.ObjectId();
+						let dataUrl = req.body.thumb;
+						req.body.thumb = '/api/'+opts.part+'/avatar/' + req.body._id + '.jpg?' + Date.now();
+						waw.dataUrlToLocation(dataUrl, opts.dirname, req.body._id + '.jpg', done);
+					}else done();
+				}, function(done) {
+					if(req.body.thumbs){
+						waw.each(req.body.thumbs, (thumb, cb, i)=>{
+							let _id = waw.mongoose.Types.ObjectId();
+							let dataUrl = req.body.thumbs[i];
+							req.body.thumbs[i] = '/api/'+opts.part+'/avatar/' + _id + '.jpg?' + Date.now();
+							waw.dataUrlToLocation(dataUrl, opts.dirname, _id + '.jpg', cb);
+						}, done);
+					}else done();
+				}], function() {
+					if(extra) extra(req, res, next);
+					else next();
+				});
+			}
+		}
 	/*
 	*	End of
 	*/
