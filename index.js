@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 var session = require('express-session');
 const app = express();
@@ -41,7 +43,7 @@ module.exports = function(waw){
 	}));
 	waw.store = store;
 
-	if(waw.config.icon && waw.fs.existsSync(process.cwd() + waw.config.icon))
+	if(waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon))
 		app.use(favicon(process.cwd() + waw.config.icon));
 	app.use(cookieParser());
 	app.use(methodOverride('X-HTTP-Method-Override'));
@@ -227,6 +229,30 @@ module.exports = function(waw){
 			fs.writeFile(loc+'/'+file, decodeData, cb);
 		}
 		waw.files = function(opts){
+			waw.app.post("/api/"+opts.part+"/avatar/delete", opts.ensure || waw.role('admin'), function(req, res) {
+				opts.schema.findOne(opts.query || {
+					_id: req.body._id
+				}, function(err, doc) {
+					if(err || !doc) return res.send(false);
+					let removed = false;
+					for (var i = doc.thumbs.length - 1; i >= 0; i--) {
+						if(doc.thumbs[i] == req.body.url){
+							removed = true;
+							doc.thumbs.splice(i, 1);
+						}
+					}
+					if(removed){
+						waw.parallel([function(done){
+							doc.save(done);
+						}, function(done){
+							let location = opts.dirname + req.body.url.split('/').pop();
+							if (fs.existsSync(location)) fs.unlink(location, done);
+						}], function(){
+							res.send(removed);							
+						});
+					}else res.send(removed);
+				});
+			});
 			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
 				opts.schema.findOne(opts.query || {
 					_id: req.body._id
@@ -243,8 +269,8 @@ module.exports = function(waw){
 				});
 			});
 			waw.app.post("/api/"+opts.part+"/avatars", opts.ensure || waw.role('admin'), function(req, res) {
-				let custom = waw.mongoose.Types.ObjectId();
-				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg?' + Date.now();
+				let custom = mongoose.Types.ObjectId();
+				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg';
 				waw.parallel([function(done) {
 					opts.schema.update(opts.query || { _id: req.body._id }, { $push: { thumbs: url } }, done);
 				}, function(n) {
@@ -261,7 +287,7 @@ module.exports = function(waw){
 			return function(req, res, next){
 				waw.parallel([function(done) {
 					if(req.body.thumb){
-						if(!req.body._id) req.body._id = waw.mongoose.Types.ObjectId();
+						if(!req.body._id) req.body._id = mongoose.Types.ObjectId();
 						let dataUrl = req.body.thumb;
 						req.body.thumb = '/api/'+opts.part+'/avatar/' + req.body._id + '.jpg?' + Date.now();
 						waw.dataUrlToLocation(dataUrl, opts.dirname, req.body._id + '.jpg', done);
@@ -269,7 +295,7 @@ module.exports = function(waw){
 				}, function(done) {
 					if(req.body.thumbs){
 						waw.each(req.body.thumbs, (thumb, cb, i)=>{
-							let _id = waw.mongoose.Types.ObjectId();
+							let _id = mongoose.Types.ObjectId();
 							let dataUrl = req.body.thumbs[i];
 							req.body.thumbs[i] = '/api/'+opts.part+'/avatar/' + _id + '.jpg?' + Date.now();
 							waw.dataUrlToLocation(dataUrl, opts.dirname, _id + '.jpg', cb);
