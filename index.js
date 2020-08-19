@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 var session = require('express-session');
 const app = express();
@@ -6,6 +8,7 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const derer = require('derer');
 const io = require('socket.io')(server, { origins: '*:*'});
 module.exports = function(waw){
@@ -40,7 +43,7 @@ module.exports = function(waw){
 	}));
 	waw.store = store;
 
-	if(waw.config.icon && waw.fs.existsSync(process.cwd() + waw.config.icon))
+	if(waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon))
 		app.use(favicon(process.cwd() + waw.config.icon));
 	app.use(cookieParser());
 	app.use(methodOverride('X-HTTP-Method-Override'));
@@ -63,6 +66,7 @@ module.exports = function(waw){
 			return router;
 		}
 		waw.app = app;
+		waw.express = express;
 	/*
 	*	Use
 	*/
@@ -217,6 +221,92 @@ module.exports = function(waw){
 				}
 			}
 		});
+	/* Files Management */
+		waw.dataUrlToLocation = function(dataUrl, loc, file, cb){
+			var base64Data = dataUrl.replace(/^data:image\/png;base64,/, '').replace(/^data:image\/jpeg;base64,/, '');
+			var decodeData = Buffer.from(base64Data, 'base64');
+			fs.mkdirSync(loc, { recursive: true });
+			fs.writeFile(loc+'/'+file, decodeData, cb);
+		}
+		waw.files = function(opts){
+			waw.app.post("/api/"+opts.part+"/avatar/delete", opts.ensure || waw.role('admin'), function(req, res) {
+				opts.schema.findOne(opts.query || {
+					_id: req.body._id
+				}, function(err, doc) {
+					if(err || !doc) return res.send(false);
+					let removed = false;
+					for (var i = doc.thumbs.length - 1; i >= 0; i--) {
+						if(doc.thumbs[i] == req.body.url){
+							removed = true;
+							doc.thumbs.splice(i, 1);
+						}
+					}
+					if(removed){
+						waw.parallel([function(done){
+							doc.save(done);
+						}, function(done){
+							let location = opts.dirname + req.body.url.split('/').pop();
+							if (fs.existsSync(location)) fs.unlink(location, done);
+						}], function(){
+							res.send(removed);							
+						});
+					}else res.send(removed);
+				});
+			});
+			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
+				opts.schema.findOne(opts.query || {
+					_id: req.body._id
+				}, function(err, doc) {
+					if(err || !doc) return res.send(false);
+					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
+					waw.parallel([function(n) {
+						doc.save(n);
+					}, function(n) {
+						waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, doc._id + '.jpg', n);
+					}], function() {
+						res.json(doc.thumb);
+					});
+				});
+			});
+			waw.app.post("/api/"+opts.part+"/avatars", opts.ensure || waw.role('admin'), function(req, res) {
+				let custom = mongoose.Types.ObjectId();
+				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg';
+				waw.parallel([function(done) {
+					opts.schema.update(opts.query || { _id: req.body._id }, { $push: { thumbs: url } }, done);
+				}, function(n) {
+					waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, custom + '.jpg', n);
+				}], function() {
+					res.json(url);
+				});
+			});
+			waw.app.get("/api/"+opts.part+"/avatar/:file", function(req, res) {
+				res.sendFile(opts.dirname + req.params.file);
+			});
+		}
+		waw.ensure_file = function(opts, extra){
+			return function(req, res, next){
+				waw.parallel([function(done) {
+					if(req.body.thumb){
+						if(!req.body._id) req.body._id = mongoose.Types.ObjectId();
+						let dataUrl = req.body.thumb;
+						req.body.thumb = '/api/'+opts.part+'/avatar/' + req.body._id + '.jpg?' + Date.now();
+						waw.dataUrlToLocation(dataUrl, opts.dirname, req.body._id + '.jpg', done);
+					}else done();
+				}, function(done) {
+					if(req.body.thumbs){
+						waw.each(req.body.thumbs, (thumb, cb, i)=>{
+							let _id = mongoose.Types.ObjectId();
+							let dataUrl = req.body.thumbs[i];
+							req.body.thumbs[i] = '/api/'+opts.part+'/avatar/' + _id + '.jpg?' + Date.now();
+							waw.dataUrlToLocation(dataUrl, opts.dirname, _id + '.jpg', cb);
+						}, done);
+					}else done();
+				}], function() {
+					if(extra) extra(req, res, next);
+					else next();
+				});
+			}
+		}
 	/*
 	*	End of
 	*/
