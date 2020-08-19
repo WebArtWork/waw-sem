@@ -1,4 +1,7 @@
 module.exports = function(waw) {
+	waw.resp = function(body){
+		return body;
+	}
 	/*
 	*	Crud Fill
 	*/
@@ -71,10 +74,10 @@ module.exports = function(waw) {
 				doc.save(function(err){
 					if(err){
 						console.log(err);
-						return res.json(false);
+						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					}
 					waw.emit(emit, doc);
-					res.json(doc);
+					res.json(waw.resp(doc, 200, 'Successful'));
 				});
 			}
 			/*
@@ -83,7 +86,7 @@ module.exports = function(waw) {
 				router.post("/create", ensure('ensure_create_'+crudName), function(req, res) {
 					var doc = new Schema();
 					if(typeof doc.create !== 'function'){
-						return res.json(false);
+						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					}
 					doc.create(req.body, req.user, waw);
 					save(doc, res, crudName+'_create');
@@ -124,9 +127,9 @@ module.exports = function(waw) {
 						}
 						query.exec(function(err, docs) {
 							if(err){
-								console.log(err);
+								return res.json(waw.resp(null, 400, 'Unsuccessful query'));
 							}
-							res.json(docs || []);
+							res.json(waw.resp(docs || [], 200, 'Successful'));
 						});
 					});
 				}
@@ -157,9 +160,9 @@ module.exports = function(waw) {
 						q.exec(function(err, doc){
 							if(err||!doc){
 								err&&console.log(err);
-								return res.json(false);
+								return res.json(waw.resp(null, 400, 'Unsuccessful query'));
 							}
-							res.json(doc);
+							res.json(waw.resp(doc, 200, 'Successful'));
 						});
 					});
 				}
@@ -222,11 +225,11 @@ module.exports = function(waw) {
 								query[upd.key] = req.body[upd.key];
 							}
 							Schema.findOne(query, function(err, sdoc){
-								if(sdoc) return res.json(doc[upd.key]);
+								if(sdoc) return res.json(waw.resp(doc[upd.key], 400, 'Already Exists'));
 								doc[upd.key] = req.body[upd.key];
 								doc.markModified(upd.key);
 								doc.save(function(err){
-									res.json(doc[upd.key]);
+									res.json(waw.resp(doc[upd.key], 200, 'Successful'));
 								});
 							});
 						});
@@ -253,18 +256,18 @@ module.exports = function(waw) {
 							q.populate(populate);
 						}
 						q.exec(function(err, doc) {
-							if(err||!doc) return res.json(false);
+							if(err||!doc) return res.json(waw.resp(null, 400, 'Unsuccessful query'));
 							Schema.deleteOne(waw['query' + final_name] && waw['query' + final_name](req, res) || {
 								_id: req.body._id,
 								author: req.user._id
 							}, function(err) {
 								if (err){
-									res.json(false);
+									res.json(waw.resp(null, 400, 'Unsuccessful query'));
 								}else{
 									if(typeof waw['on'+name] == 'function'){
 										waw['on'+name](doc, req, res);
 									}
-									res.json(true);
+									res.json(waw.resp(true, 200, 'Successful'));
 								}
 							});
 						});
