@@ -103,7 +103,7 @@ module.exports = function(waw){
 		waw.next = (req, res, next)=>next()
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
-			else res.json(false);
+			else res.json(waw.resp(false));
 		}
 		waw.role = function(roles, extra){
 			if(typeof roles == 'string'){
