@@ -188,7 +188,7 @@ module.exports = function(waw) {
 						q.exec(function(err, doc){
 							if(err||!doc){
 								err&&console.log(err);
-								return res.json(false);
+								return res.json(waw.resp(null, 400, 'Document not found'));
 							}
 							for (var i = 0; i < upd.keys.length; i++) {
 								doc[upd.keys[i]] = req.body[upd.keys[i]];
@@ -218,7 +218,7 @@ module.exports = function(waw) {
 							q.select(waw['select'+final_name](req, res));
 						}
 						q.exec(function(err, doc){
-							if(err||!doc) return res.json(false);
+							if(err||!doc) return res.json(waw.resp(null, 400, 'Document not found'));
 							let query = waw['select'+final_name]&&waw['select'+final_name](req, res, upd);
 							if(!query){
 								query = {};
