@@ -119,7 +119,7 @@ module.exports = function(waw){
 						}
 					}
 				}
-				res.json(false);
+				res.json(waw.resp(null, 400, 'Unsuccessful update'));
 			}
 		}
 	/*
@@ -233,7 +233,7 @@ module.exports = function(waw){
 				opts.schema.findOne(opts.query || {
 					_id: req.body._id
 				}, function(err, doc) {
-					if(err || !doc) return res.send(false);
+					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					let removed = false;
 					for (var i = doc.thumbs.length - 1; i >= 0; i--) {
 						if(doc.thumbs[i] == req.body.url){
@@ -248,23 +248,23 @@ module.exports = function(waw){
 							let location = opts.dirname + req.body.url.split('/').pop();
 							if (fs.existsSync(location)) fs.unlink(location, done);
 						}], function(){
-							res.send(removed);							
+							res.json(waw.resp(removed, 200, 'Successful'));
 						});
-					}else res.send(removed);
+					}else res.json(waw.resp(removed, 200, 'Successful'));
 				});
 			});
 			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
 				opts.schema.findOne(opts.query || {
 					_id: req.body._id
 				}, function(err, doc) {
-					if(err || !doc) return res.send(false);
+					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
 					waw.parallel([function(n) {
 						doc.save(n);
 					}, function(n) {
 						waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, doc._id + '.jpg', n);
 					}], function() {
-						res.json(doc.thumb);
+						res.json(waw.resp(doc.thumb, 200, 'Successful'));
 					});
 				});
 			});
@@ -276,7 +276,7 @@ module.exports = function(waw){
 				}, function(n) {
 					waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, custom + '.jpg', n);
 				}], function() {
-					res.json(url);
+					res.json(waw.resp(url, 200, 'Successful'));
 				});
 			});
 			waw.app.get("/api/"+opts.part+"/avatar/:file", function(req, res) {
