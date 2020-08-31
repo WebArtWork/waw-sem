@@ -250,7 +250,7 @@ module.exports = function(waw){
 						}], function(){
 							res.json(waw.resp(removed, 200, 'Successful'));
 						});
-					}else res.json(waw.resp(removed, 200, 'Successful'));
+					}else res.json(waw.resp(removed, 300, 'Not Found Picture'));
 				});
 			});
 			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
