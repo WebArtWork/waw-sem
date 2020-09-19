@@ -8,6 +8,7 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
+const formidable = require('formidable');
 const mongoose = require('mongoose');
 const derer = require('derer');
 const io = require('socket.io')(server, { origins: '*:*'});
@@ -84,22 +85,31 @@ module.exports = function(waw){
 			});
 		});
 	/*
-	*	Middleware
+	*	Prepare
 	*/
-		const middlewares = {};
-		waw.middleware = function(which, req, res, next){
-			if(typeof middlewares[which] == 'function'){
-				middlewares[which](req, res, next);
+		const prepares = {};
+		waw.prepare = function(which, req, res, next){
+			if(typeof prepares[which] == 'function'){
+				prepares[which](req, res, next);
 			}else next({});
 		}
-		waw.set_middleware = function(which, cb){
+		waw.set_prepare = function(which, cb){
 			if(typeof cb == 'function' && which){
-				middlewares[which] = cb;
+				prepares[which] = cb;
 			}				
 		}
 	/*
 	*	Express Middleware Support
 	*/
+		waw.middleware = function(which){
+			return function(req, res, next){
+				if(typeof which == 'function'){
+					which(req, res, next);
+				}else if(typeof waw[which] == 'function'){
+					waw[which](req, res, next);
+				}else next();
+			}
+		}
 		waw.next = (req, res, next)=>next()
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
@@ -119,7 +129,7 @@ module.exports = function(waw){
 						}
 					}
 				}
-				res.json(waw.resp(null, 400, 'Unsuccessful update'));
+				res.json(false);
 			}
 		}
 	/*
@@ -229,8 +239,83 @@ module.exports = function(waw){
 			fs.writeFile(loc+'/'+file, decodeData, cb);
 		}
 		waw.files = function(opts){
+			if(!opts.dirname){
+				return console.log('Please provide dirname option');
+			}
+			if(opts.dirname.charAt(opts.dirname.length-1)!='/'){
+				opts.dirname += '/';
+			}
+			if(!opts.schema){
+				return console.log('Please provide schema option');
+			}
+			if(!opts.part){
+				return console.log('Please provide part option');
+			}
+			waw.app.post("/api/"+opts.part+"/file", waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
+				const form = new formidable.IncomingForm({
+					uploadDir: opts.dirname,
+					multiples: true
+				});
+				form.parse(req, function(err, fields, files) {
+					if (err) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
+					opts.schema.findOne(typeof opts.query == 'function' && opts.query(req, res) || {
+						moderators: req.user&&req.user._id,
+						_id: req.body._id
+					}, function(err, doc) {
+						if(err || !doc) return res.send(false);
+						for(let each in files){
+							let name = files[each].path+'_'+files[each].name;
+							fs.renameSync(files[each].path, name);
+							if(typeof opts.files == 'function'){
+								opts.files(doc, files[each]);
+							}else{
+								if(!Array.isArray(doc.files)) doc.files=[];
+								doc.files.push('/api/'+opts.part+'/file/' + path.basename(name));
+							}
+						}
+						doc.save(()=>{
+							let resp = typeof opts.files_resp == 'function' && opts.files_resp(doc) || doc.files;
+							res.json(waw.resp(resp, 200, 'Successful'));
+						});
+					});
+				});
+			});
+			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
+				opts.schema.findOne(typeof opts.query == 'function' && opts.query(req, res) || {
+					moderators: req.user&&req.user._id,
+					_id: req.body._id
+				}, function(err, doc) {
+					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
+					let url = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
+
+					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
+					waw.parallel([function(n) {
+						doc.save(n);
+					}, function(n) {
+						waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, doc._id + '.jpg', n);
+					}], function() {
+						res.json(waw.resp(doc.thumb, 200, 'Successful'));
+					});
+				});
+			});
+			waw.app.post("/api/"+opts.part+"/avatars", opts.ensure || waw.role('admin'), function(req, res) {
+				let custom = mongoose.Types.ObjectId();
+				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg';
+				waw.parallel([function(done) {
+					let update = typeof opts.avatars == 'function' && opts.avatars(url) || { thumbs: url };
+					opts.schema.update(typeof opts.query == 'function' && opts.query(req, res) || {
+						moderators: req.user&&req.user._id,
+						_id: req.body._id
+					}, { $push: { thumbs: url } }, done);
+				}, function(n) {
+					waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, custom + '.jpg', n);
+				}], function() {
+					res.json(waw.resp(url, 200, 'Successful'));
+				});
+			});
 			waw.app.post("/api/"+opts.part+"/avatar/delete", opts.ensure || waw.role('admin'), function(req, res) {
-				opts.schema.findOne(opts.query || {
+				opts.schema.findOne(typeof opts.query == 'function' && opts.query(req, res) || {
+					moderators: req.user&&req.user._id,
 					_id: req.body._id
 				}, function(err, doc) {
 					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
@@ -253,35 +338,17 @@ module.exports = function(waw){
 					}else res.json(waw.resp(removed, 300, 'Not Found Picture'));
 				});
 			});
-			waw.app.post("/api/"+opts.part+"/avatar", opts.ensure || waw.role('admin'), function(req, res) {
-				opts.schema.findOne(opts.query || {
-					_id: req.body._id
-				}, function(err, doc) {
-					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
-					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
-					waw.parallel([function(n) {
-						doc.save(n);
-					}, function(n) {
-						waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, doc._id + '.jpg', n);
-					}], function() {
-						res.json(waw.resp(doc.thumb, 200, 'Successful'));
-					});
-				});
-			});
-			waw.app.post("/api/"+opts.part+"/avatars", opts.ensure || waw.role('admin'), function(req, res) {
-				let custom = mongoose.Types.ObjectId();
-				let url = '/api/'+opts.part+'/avatar/' + custom + '.jpg';
-				waw.parallel([function(done) {
-					opts.schema.update(opts.query || { _id: req.body._id }, { $push: { thumbs: url } }, done);
-				}, function(n) {
-					waw.dataUrlToLocation(req.body.dataUrl, opts.dirname, custom + '.jpg', n);
-				}], function() {
-					res.json(waw.resp(url, 200, 'Successful'));
-				});
-			});
-			waw.app.get("/api/"+opts.part+"/avatar/:file", function(req, res) {
-				res.sendFile(opts.dirname + req.params.file);
-			});
+			const serve_file = function(req, res) {
+				if (fs.existsSync(opts.dirname + req.params.file)) {
+					res.sendFile(opts.dirname + req.params.file);
+				}else{
+					res.sendFile(opts.default || __dirname+'/default.png');
+				}
+			};
+			waw.app.get("/api/"+opts.part+"/file/:file", serve_file);
+			waw.app.get("/api/"+opts.part+"/file/:file/:name", serve_file);
+			waw.app.get("/api/"+opts.part+"/avatar/:file", serve_file);
+			waw.app.get("/api/"+opts.part+"/avatar/:file/:name", serve_file);
 		}
 		waw.ensure_file = function(opts, extra){
 			return function(req, res, next){
