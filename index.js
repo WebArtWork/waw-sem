@@ -258,19 +258,20 @@ module.exports = function(waw){
 				});
 				form.parse(req, function(err, fields, files) {
 					if (err) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
-					opts.schema.findOne(typeof opts.query == 'function' && opts.query(req, res) || {
+					opts.schema.findOne(typeof opts.query == 'function' && opts.query(req, res, fields, files) || {
 						moderators: req.user&&req.user._id,
 						_id: req.body._id
 					}, function(err, doc) {
 						if(err || !doc) return res.send(false);
 						for(let each in files){
 							let name = files[each].path+'_'+files[each].name;
+							name = name.split('/').join('');
 							fs.renameSync(files[each].path, name);
 							if(typeof opts.files == 'function'){
 								opts.files(doc, files[each]);
 							}else{
 								if(!Array.isArray(doc.files)) doc.files=[];
-								doc.files.push('/api/'+opts.part+'/file/' + path.basename(name));
+								doc.files.push('/api/'+opts.part+'/file/'+path.basename(name)+'/'+files[each].name.split('/').join(''));
 							}
 						}
 						doc.save(()=>{
@@ -287,7 +288,6 @@ module.exports = function(waw){
 				}, function(err, doc) {
 					if(err || !doc) return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					let url = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
-
 					doc.thumb = '/api/'+opts.part+'/avatar/' + doc._id + '.jpg?' + Date.now();
 					waw.parallel([function(n) {
 						doc.save(n);
