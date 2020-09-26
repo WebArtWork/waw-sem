@@ -80,8 +80,8 @@ module.exports = function(waw) {
 						name: name
 					});
 				}
-				if(typeof waw.process == 'function'){
-					waw.process(req, res, ()=>{
+				if(typeof opts.process == 'function'){
+					opts.process(req, res, ()=>{
 						res.json(req.files);
 					});
 				}else{
@@ -145,7 +145,7 @@ module.exports = function(waw) {
 			if(Array.isArray(config)){
 				for (var i = 0; i < config.length; i++) {
 					if(typeof config[i] != 'object') continue;
-					for(let each of options[part]){
+					for(let each in options[part]){
 						config[i][each] = options[part][each];
 					}
 					manage(part, config[i]);
@@ -160,7 +160,7 @@ module.exports = function(waw) {
 		};
 		waw.files = function(){
 			console.log('MOVE waw.files to waw.file so your files work again.');
-		}
+		};
 	/*
 	*	End of
 	*/
