@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+const formidable = require('formidable');
 module.exports = function(waw) {
 	/*
 	*	File Servce
@@ -76,7 +78,7 @@ module.exports = function(waw) {
 					name = name.split('/').join('');
 					fs.renameSync(files[each].path, name);
 					req.files.push({
-						url: '/api/'+opts.part+'/file/'+path.basename(name)+'/'+files[each].name.split('/').join(''),
+						url: '/api/'+part+'/file/'+path.basename(name)+'/'+files[each].name.split('/').join(''),
 						name: name
 					});
 				}
