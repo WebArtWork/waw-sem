@@ -154,6 +154,15 @@ module.exports = function(waw) {
 					dirname: waw.parts[i].__root + '/' + (waw.parts[i].file.dirname||'files') + '/',
 					part: waw.parts[i]
 				};
+				if(Array.isArray(waw.parts[i].file.options)){
+					for (var j = 0; j < waw.parts[i].file.options.length; j++) {
+						if(typeof waw.parts[i].file.options[j] != 'string') continue;
+						options[waw.parts[i].file.options[j].toLowerCase()] = {
+							dirname: waw.parts[i].__root + '/' + (waw.parts[i].file.dirname||'files') + '/',
+							part: waw.parts[i]
+						};
+					}
+				}
 			}else{
 				options[waw.parts[i].name.toLowerCase()] = {
 					dirname: waw.parts[i].__root + '/files/',
@@ -165,7 +174,7 @@ module.exports = function(waw) {
 		waw.file = function(part, config){
 			part = part.toLowerCase();
 			if(!options[part]){
-				return console.log("Something went wrong, part was not executed correctly.");				
+				return console.log("Something went wrong, part was not executed correctly.");
 			}
 			if(set[part]){
 				return console.log("You can't set same part multiple times. Please use once array of config's.");
