@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
+const mongoose = require('mongoose');
 module.exports = function(waw) {
 	/*
 	*	File Servce
@@ -40,7 +41,7 @@ module.exports = function(waw) {
 	*/
 		const upload_image = function(req, res, part, opts){
 			if(!req.filename && typeof opts.rename == 'function'){
-				let filename = opts.rename(req, res, (filename)=>{
+				let filename = opts.rename(req, (filename)=>{
 					req.filename = filename;
 					upload_image(req, res, part, opts);
 				});
@@ -62,6 +63,33 @@ module.exports = function(waw) {
 				}				
 			});
 		}
+		const process_file = function(req, file, part, opts){
+			let name;
+			return function(next){
+				if(typeof opts.rename == 'function'){
+					req.file = file;
+					name = opts.rename(req, (name)=>{
+						if(name) return;
+						fs.renameSync(file.path, name);
+						req.files.push({
+							url: '/api/'+part+'/file/'+path.basename(name)+'/'+file.name.split(' ').join(''),
+							name: file.name
+						});
+						next();
+					});
+					if(!name) return;
+				}else{
+					name = file.path+'_'+file.name;
+					name = name.split('/').join('');
+				}
+				fs.renameSync(file.path, name);
+				req.files.push({
+					url: '/api/'+part+'/file/'+path.basename(name)+'/'+file.name.split(' ').join(''),
+					name: file.name
+				});
+				next();
+			}
+		}
 		const upload_file = function(req, res, part, opts){
 			const form = new formidable.IncomingForm({
 				uploadDir: opts.dirname,
@@ -73,22 +101,19 @@ module.exports = function(waw) {
 					req.body[each] = fields[each];
 				}
 				req.files = [];
+				let processes = [];
 				for(let each in files){
-					let name = files[each].path+'_'+files[each].name;
-					name = name.split('/').join('');
-					fs.renameSync(files[each].path, name);
-					req.files.push({
-						url: '/api/'+part+'/file/'+path.basename(name)+'/'+files[each].name.split('/').join(''),
-						name: name
-					});
+					processes.push(process_file(req, files[each], part, opts));
 				}
-				if(typeof opts.process == 'function'){
-					opts.process(req, res, ()=>{
+				waw.parallel(processes, ()=>{
+					if(typeof opts.process == 'function'){
+						opts.process(req, res, ()=>{
+							res.json(req.files);
+						});
+					}else{
 						res.json(req.files);
-					});
-				}else{
-					res.json(req.files);
-				}
+					}
+				});
 			});			
 		}
 		const manage = function(part, opts){
@@ -99,11 +124,14 @@ module.exports = function(waw) {
 			waw.app.post("/api/"+part+"/file/delete"+(opts.name&&'/'+opts.name||''), waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
 				let filename = req.body.url.split('/').pop();
 				if (fs.existsSync(opts.dirname + filename)){
-					fs.unlink(opts.dirname + filename);
-					if(typeof opts.remove == 'function') opts.remove(req, res);
-					res.json(waw.resp(true, 200, 'Successful'));
+					fs.unlinkSync(opts.dirname + filename);
+				}
+				if(typeof opts.remove == 'function'){
+					opts.remove(req, res, ()=>{
+						res.json(waw.resp(true, 200, 'Successful'));
+					});
 				}else{
-					res.json(waw.resp(false, 300, 'Not Found Picture'));
+					res.json(waw.resp(true, 200, 'Successful'));
 				}
 			});
 		}
