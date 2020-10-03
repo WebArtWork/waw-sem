@@ -64,30 +64,24 @@ module.exports = function(waw) {
 			});
 		}
 		const process_file = function(req, file, part, opts){
-			let name;
+			req.file = file;
 			return function(next){
-				if(typeof opts.rename == 'function'){
-					req.file = file;
-					name = opts.rename(req, (name)=>{
-						if(name) return;
-						fs.renameSync(file.path, name);
-						req.files.push({
-							url: '/api/'+part+'/file/'+path.basename(name)+'/'+file.name.split(' ').join(''),
-							name: file.name
-						});
-						next();
+				const complete = (name)=>{
+					fs.renameSync(file.path, file.path+'_'+name);
+					req.files.push({
+						url: '/api/'+part+'/file/'+path.basename(file.path+'_'+name)+'/'+file.name.split(' ').join(''),
+						name: file.name
 					});
-					if(!name) return;
-				}else{
-					name = file.path+'_'+file.name;
-					name = name.split('/').join('');
+					next();
 				}
-				fs.renameSync(file.path, name);
-				req.files.push({
-					url: '/api/'+part+'/file/'+path.basename(name)+'/'+file.name.split(' ').join(''),
-					name: file.name
-				});
-				next();
+				if(typeof opts.rename == 'function'){
+					let name = opts.rename(req, (cb_name)=>{
+						if(!name) complete(cb_name);
+					});
+					if(name) complete(name);
+				}else{
+					complete(file.name);
+				}
 			}
 		}
 		const upload_file = function(req, res, part, opts){
@@ -195,7 +189,6 @@ module.exports = function(waw) {
 				}
 				manage(part, config);
 			}
-			
 		};
 		waw.files = function(){
 			console.log('MOVE waw.files to waw.file so your files work again.');
