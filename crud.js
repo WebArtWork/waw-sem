@@ -70,16 +70,6 @@ module.exports = function(waw) {
 				Schema = Schema(waw);
 			}
 			var router = waw.router('/api/'+crudName);
-			var save = function(doc, res, emit){
-				doc.save(function(err){
-					if(err){
-						console.log(err);
-						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
-					}
-					waw.emit(emit, doc);
-					res.json(waw.resp(doc, 200, 'Successful'));
-				});
-			}
 			/*
 			*	Create
 			*/
@@ -89,7 +79,22 @@ module.exports = function(waw) {
 						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					}
 					doc.create(req.body, req.user, waw);
-					save(doc, res, crudName+'_create');
+					doc.save(function(err){
+						if(err){
+							console.log(err);
+							return res.json(waw.resp(null, 400, 'Unsuccessful update'));
+						}
+						waw.emit(crudName+'_create', doc);
+						if(typeof waw['select_create_'+crudName] == 'function'){
+							Schema.findOne({
+								_id: doc._id
+							}).select(waw['select_create_'+crudName](req, res)).exec(function(err, qdoc){
+								res.json(waw.resp(qdoc, 200, 'Successful'));
+							});
+						}else{
+							res.json(waw.resp(doc, 200, 'Successful'));
+						}
+					});
 				});
 			/*
 			*	Read
@@ -149,7 +154,7 @@ module.exports = function(waw) {
 						let q = Schema.findOne(waw['query'+final_name]&&waw['query'+final_name](req, res)||{
 							_id: req.body._id,
 							moderators: req.user&&req.user._id
-						})
+						});
 						if(typeof waw['select'+final_name] == 'function'){
 							q.select(waw['select'+final_name](req, res));
 						}
@@ -194,7 +199,14 @@ module.exports = function(waw) {
 								doc[upd.keys[i]] = req.body[upd.keys[i]];
 								doc.markModified(upd.keys[i]);
 							}
-							save(doc, res, crudName+'_update');
+							doc.save(function(err){
+								if(err){
+									console.log(err);
+									return res.json(waw.resp(null, 400, 'Unsuccessful update'));
+								}
+								waw.emit(crudName+'_update', doc);
+								res.json(waw.resp(doc, 200, 'Successful'));
+							});
 						});
 					});
 				}
