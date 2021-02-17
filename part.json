@@ -1,6 +1,6 @@
 {
 	"name": "Sem",
-	"router": "index.js crud.js file.js",
+	"router": "index.js crud.js file.js serve.js",
 	"runner": "runner.js",
 	"priority": 999,
 	"git": {

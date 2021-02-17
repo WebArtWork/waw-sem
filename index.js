@@ -43,7 +43,6 @@ module.exports = function(waw){
 		store: store
 	}));
 	waw.store = store;
-
 	if(waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon))
 		app.use(favicon(process.cwd() + waw.config.icon));
 	app.use(cookieParser());
