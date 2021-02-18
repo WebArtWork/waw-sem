@@ -8,11 +8,11 @@ module.exports = function(waw){
 	}
 	// url
 	var urls = [];
-	waw.url = function(file, links, obj){
+	waw.url = function(file, links, obj, host){
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
-		urls.push({ file, links, obj });
+		urls.push({ file, links, obj, host});
 	}
 	// render
 	var htmls = {};
@@ -28,6 +28,7 @@ module.exports = function(waw){
 		if(req.url.indexOf('/api/')==0) return next();
 		if(waw.html(req.url)) return res.send(waw.html(req.url));
 		for (var i = 0; i < urls.length; i++) {
+			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
 			for (var j = 0; j < urls[i].links.length; j++) {
 				if(urls[i].links[j]==req.url){
 					if(urls[i].obj){
