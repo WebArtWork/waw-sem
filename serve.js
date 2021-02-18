@@ -9,6 +9,9 @@ module.exports = function(waw){
 	// url
 	var urls = [];
 	waw.url = function(file, links, obj){
+		if(typeof links == 'string'){
+			links = links.split(' ');
+		}
 		urls.push({ file, links, obj });		
 	}
 	// render
@@ -27,9 +30,9 @@ module.exports = function(waw){
 			for (var j = 0; j < urls[i].links.length; j++) {
 				if(urls[i].links[j]==req.url){
 					if(urls[i].obj){
-						res.send(waw.derer.renderFile(urls[i].file, urls[i].obj));
+						return res.send(waw.derer.renderFile(urls[i].file, urls[i].obj));
 					}else{
-						res.sendFile(urls[i].file);
+						return res.sendFile(urls[i].file);
 					}
 				}
 			}
