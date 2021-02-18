@@ -12,7 +12,7 @@ module.exports = function(waw){
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
-		urls.push({ file, links, obj });		
+		urls.push({ file, links, obj });
 	}
 	// render
 	var htmls = {};
@@ -26,11 +26,12 @@ module.exports = function(waw){
 	// checkup
 	waw.use(function(req, res, next) {
 		if(req.url.indexOf('/api/')==0) return next();
+		if(waw.html(req.url)) return res.send(waw.html(req.url));
 		for (var i = 0; i < urls.length; i++) {
 			for (var j = 0; j < urls[i].links.length; j++) {
 				if(urls[i].links[j]==req.url){
 					if(urls[i].obj){
-						return res.send(waw.derer.renderFile(urls[i].file, urls[i].obj));
+						return res.send(waw.html(req.url, waw.derer.renderFile(urls[i].file, urls[i].obj)));
 					}else{
 						return res.sendFile(urls[i].file);
 					}
