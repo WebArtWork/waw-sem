@@ -7,10 +7,10 @@
 		"repo": "https://github.com/WebArtWork/sem.git"
 	},
 	"dependencies": {
-		"mongoose": "*",
+		"mongoose": "5.10.15",
+		"connect-mongo": "3.2.0",
 		"formidable": "*",
 		"method-override": "*",
-		"connect-mongo": "*",
 		"serve-favicon": "*",
 		"express-session": "*",
 		"cookie-parser": "*",
