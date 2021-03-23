@@ -7,6 +7,12 @@ module.exports = function(waw) {
 	*/
 		var fill_crud = function(part, which, config){
 			var prefix = which+'_'+part+(config.name&&('_'+config.name)||'');
+			if(typeof config.required == 'string'){
+				config.required = config.required.split(' ');
+			}
+			if(Array.isArray(config.required)){
+				waw['required_'+prefix] = config.required;
+			}
 			if(typeof config.ensure == 'function'){
 				waw['ensure_'+prefix] = config.ensure;
 			}
@@ -47,6 +53,14 @@ module.exports = function(waw) {
 	*/
 		const ensure = function(name){
 			return function(req, res, next){
+				let required = waw[name.replace('ensure_','required_')];
+				if(required){
+					for (var i = 0; i < required.length; i++) {
+						if(!req.body[required[i]]){
+							return res.json(waw.resp(null, 410, required[i]+' field should not be left blank.'));
+						}
+					}
+				}
 				if(typeof waw[name] == 'function'){
 					waw[name](req, res, next);
 				}else{

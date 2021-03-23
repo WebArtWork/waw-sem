@@ -12,6 +12,7 @@ module.exports = function(waw){
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
+		if(host) host = host.toLowerCase();
 		urls.push({ file, links, obj, host});
 	}
 	// render

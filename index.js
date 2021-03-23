@@ -190,6 +190,11 @@ module.exports = function(waw){
 			if(link.indexOf('//')>0) return link;
 			else return 'http://'+link;
 		});
+		waw.derer.setFilter('mongodate',function(_id){
+			if(!_id) return new Date();
+			let timestamp = _id.toString().substring(0,8);
+			return new Date(parseInt(timestamp,16)*1000);
+		});
 		// derer.setFilter('tr', waw._tr);
 		// derer.setFilter('translate', waw._tr);
 		waw._derer = derer;
