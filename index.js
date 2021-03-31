@@ -109,7 +109,63 @@ module.exports = function(waw){
 				}else next();
 			}
 		}
-		waw.next = (req, res, next)=>next()
+		waw.next = (req, res, next)=>next();
+		waw.next_user = (req, res, next)=>{
+			if(!req.user){
+				req.user = {
+					_id: req.sessionID
+				};
+			}
+			next();
+		};
+		const methods = {
+			all: {
+				get: {
+					query: ()=>{return {}}
+				}
+			},
+			author: {
+				get: {
+					query: (req)=>{ return {author: req.user._id} }
+				},
+				update: {
+					query: (req)=>{ return {author: req.user._id} }
+				}
+			},
+			offline: {
+				create: {
+					ensure: waw.next_user
+				},
+				get: {
+					ensure: waw.next_user
+				},
+				update: {
+					ensure: waw.next_user					
+				},
+				delete: {
+					ensure: waw.next_user
+				}
+			}
+		};
+		waw.crud_method = (use)=>{
+			if (typeof use == 'string') {
+				use = use.split(' ');
+			}
+			let method = {};
+			for (var i = 0; i < use.length; i++) {
+				if(methods[use[i]]){
+					for(let type in methods[use[i]]){
+						if(!method[type]){
+							method[type] = {};
+						}
+						for(let func in methods[use[i]][type]){
+							method[type][func] = methods[use[i]][type][func];
+						}
+					}
+				}
+			}
+			return method;
+		}
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
 			else res.json(waw.resp(false));
