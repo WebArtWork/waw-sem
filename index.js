@@ -147,24 +147,24 @@ module.exports = function(waw){
 				}
 			}
 		};
-		waw.crud_method = (use)=>{
+		waw.crud_method = (use, config)=>{
 			if (typeof use == 'string') {
 				use = use.split(' ');
 			}
-			let method = {};
+			if(!config) config={};
 			for (var i = 0; i < use.length; i++) {
 				if(methods[use[i]]){
 					for(let type in methods[use[i]]){
-						if(!method[type]){
-							method[type] = {};
+						if(!config[type]){
+							config[type] = {};
 						}
 						for(let func in methods[use[i]][type]){
-							method[type][func] = methods[use[i]][type][func];
+							config[type][func] = methods[use[i]][type][func];
 						}
 					}
 				}
 			}
-			return method;
+			return config;
 		}
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
