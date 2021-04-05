@@ -1,3 +1,3 @@
 module.exports = function(waw) {
-	waw.crud('link', waw.crud_method('author all'));
+	waw.crud('NAME', waw.crud_method('author all'));
 };
