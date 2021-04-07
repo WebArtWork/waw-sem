@@ -130,7 +130,7 @@ module.exports = function(waw){
 					query: (req)=>{ return {author: req.user._id} }
 				},
 				update: {
-					query: (req)=>{ return {author: req.user._id} }
+					query: (req)=>{ return { _id: req.body._id, author: req.user._id} }
 				}
 			},
 			offline: {
