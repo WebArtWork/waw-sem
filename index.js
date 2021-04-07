@@ -110,6 +110,7 @@ module.exports = function(waw){
 			}
 		}
 		waw.next = (req, res, next)=>next();
+		waw.block = (req, res)=>res.send(false);
 		waw.next_user = (req, res, next)=>{
 			if(!req.user){
 				req.user = {
