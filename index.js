@@ -109,6 +109,27 @@ module.exports = function(waw){
 				}else next();
 			}
 		}
+		waw.ensure = (req, res, next)=>{
+			if(req.user) next();
+			else res.json(waw.resp(false));
+		}
+		waw.role = function(roles, extra){
+			if(typeof roles == 'string'){
+				roles = roles.split(' ');
+			}
+			return function(req, res, next){
+				if(req.user && req.user.is){
+					for (var i = 0; i < roles.length; i++) {
+						if(req.user.is[roles[i]]){
+							if(extra) extra(req, res, next);
+							else next();
+							return;
+						}
+					}
+				}
+				res.json(false);
+			}
+		}
 		waw.next = (req, res, next)=>next();
 		waw.block = (req, res)=>res.send(false);
 		waw.next_user = (req, res, next)=>{
@@ -120,6 +141,23 @@ module.exports = function(waw){
 			next();
 		};
 		const methods = {
+			admin: {
+				create: {
+					ensure: waw.role('admin')
+				},
+				get: {
+					ensure: waw.role('admin')
+				},
+				fetch: {
+					ensure: waw.role('admin')
+				},
+				update: {
+					ensure: waw.role('admin')
+				},
+				delete: {
+					ensure: waw.role('admin')
+				}
+			},
 			all: {
 				get: {
 					query: ()=>{return {}}
@@ -167,27 +205,6 @@ module.exports = function(waw){
 				}
 			}
 			return config;
-		}
-		waw.ensure = (req, res, next)=>{
-			if(req.user) next();
-			else res.json(waw.resp(false));
-		}
-		waw.role = function(roles, extra){
-			if(typeof roles == 'string'){
-				roles = roles.split(' ');
-			}
-			return function(req, res, next){
-				if(req.user && req.user.is){
-					for (var i = 0; i < roles.length; i++) {
-						if(req.user.is[roles[i]]){
-							if(extra) extra(req, res, next);
-							else next();
-							return;
-						}
-					}
-				}
-				res.json(false);
-			}
 		}
 	/*
 	*	Support for 0.x version of waw until 2.0
