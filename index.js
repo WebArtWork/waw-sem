@@ -160,6 +160,7 @@ module.exports = function(waw){
 							config[type] = {};
 						}
 						for(let func in methods[use[i]][type]){
+							if(config[type][func]) continue;
 							config[type][func] = methods[use[i]][type][func];
 						}
 					}
