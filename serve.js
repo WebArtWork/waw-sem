@@ -12,6 +12,9 @@ module.exports = function(waw){
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
+		for (var i = 0; i < links.length; i++) {
+			links[i] = links[i].split('/').join('');
+		}
 		if(host) host = host.toLowerCase();
 		urls.push({ file, links, obj, host});
 	}
@@ -27,29 +30,31 @@ module.exports = function(waw){
 	// checkup
 	waw.use(function(req, res, next) {
 		if(req.url.indexOf('/api/')==0) return next();
-		if(waw.html(req.url)) return res.send(waw.html(req.url));
+		if(req.url.indexOf('.')>-1){
+			for (var i = 0; i < dists.length; i++) {
+				if(dists[i].opts.host && dists[i].opts.host != req.get('host').toLowerCase()) continue;
+				let url = req.url;
+				if(dists[i].opts.prefix){
+					if(req.url.indexOf(dists[i].opts.prefix)!=0) continue;
+					url = url.replace(dists[i].opts.prefix, '');
+				}
+				if (fs.existsSync(dists[i].dir + url)) {
+					return res.sendFile(dists[i].dir + url);
+				}
+			}
+		}
+		let url = req.url.split('/').join('');
+		if(waw.html(url)) return res.send(waw.html(url));
 		for (var i = 0; i < urls.length; i++) {
 			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
 			for (var j = 0; j < urls[i].links.length; j++) {
-				if(urls[i].links[j]==req.url){
+				if(urls[i].links[j] == url){
 					if(urls[i].obj){
-						return res.send(waw.html(req.url, waw.derer.renderFile(urls[i].file, urls[i].obj)));
+						return res.send(waw.html(url, waw.derer.renderFile(urls[i].file, urls[i].obj)));
 					}else{
 						return res.sendFile(urls[i].file);
 					}
 				}
-			}
-		}
-		if(req.url.indexOf('.')==-1) return next();		
-		for (var i = 0; i < dists.length; i++) {
-			if(dists[i].opts.host && dists[i].opts.host != req.get('host').toLowerCase()) continue;
-			let url = req.url;
-			if(dists[i].opts.prefix){
-				if(req.url.indexOf(dists[i].opts.prefix)!=0) continue;
-				url = url.replace(dists[i].opts.prefix, '');
-			}
-			if (fs.existsSync(dists[i].dir + url)) {
-				return res.sendFile(dists[i].dir + url);
 			}
 		}
 		next();
