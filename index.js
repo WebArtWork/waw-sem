@@ -270,10 +270,10 @@ module.exports = function(waw){
 			let timestamp = _id.toString().substring(0,8);
 			return new Date(parseInt(timestamp,16)*1000);
 		});
-		waw.derer.setFilter('c', function(path){
+		waw.derer.setFilter('c', function(path, obj){
 			path = path.toString();
 			if (fs.existsSync(process.cwd() + path + '/index.html')) {
-				return fs.readFileSync(process.cwd() + path + '/index.html', 'utf8');
+				return waw.derer.compileFile(process.cwd() + path + '/index.html')(obj||{});
 			}else return 'No component found for: '+path;			
 		});
 		// derer.setFilter('tr', waw._tr);
