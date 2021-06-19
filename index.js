@@ -11,7 +11,16 @@ const bodyParser = require('body-parser');
 const formidable = require('formidable');
 const mongoose = require('mongoose');
 const derer = require('derer');
-const io = require('socket.io')(server, { origins: '*:*'});
+const io = require('socket.io')(server, {
+	cors: {
+		origins: '*:*',
+		methods: ["GET", "POST"],
+		transports: ['websocket', 'polling'],
+		credentials: false
+	},
+	allowEIO3: true
+});
+
 module.exports = function(waw){
 	var sessionMaxAge = 365 * 24 * 60 * 60 * 1000;
 	if(typeof waw.config.session == 'number'){
