@@ -9,6 +9,8 @@ module.exports = function(waw){
 	// url
 	var urls = [];
 	waw.url = function(file, links, obj, host){
+		console.log(links);
+		console.log(host);
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
@@ -43,7 +45,7 @@ module.exports = function(waw){
 				}
 			}
 		}
-		let url = req.url.split('/').join('');
+		let url = req.url.split('/').join('') + (urls[i].host||'');
 		if(waw.html(url)) return res.send(waw.html(url));
 		for (var i = 0; i < urls.length; i++) {
 			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;

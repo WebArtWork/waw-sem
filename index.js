@@ -269,7 +269,7 @@ module.exports = function(waw){
 		waw.app.set('view cache', true);
 		derer.setFilter('string',function(input){
 			return input&&input.toString()||'';
-		});		
+		});
 		derer.setFilter('fixlink',function(link){
 			if(link.indexOf('//')>0) return link;
 			else return 'http://'+link;
