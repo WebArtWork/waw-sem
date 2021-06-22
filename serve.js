@@ -8,7 +8,7 @@ module.exports = function(waw){
 	}
 	// url
 	let content = {};
-	var urls = [];
+	let files = {};
 	waw.url = function(file, links, obj, host){
 		if(host) host = host.toLowerCase();
 		if(typeof links == 'string'){
@@ -19,10 +19,12 @@ module.exports = function(waw){
 			links[i] = links[i].split('/').join('');
 			if(obj){
 				content[(host||'')+links[i]] = html;
-				console.log('SERVE: ', (host||'')+links[i]);
+				console.log('SERVE RENDER: ', (host||'')+' | '+links[i]);
+			}else{
+				files[(host||'')+links[i]] = file;
+				console.log('SERVE FILE: ', (host||'')+' | '+links[i], file);
 			}
 		}
-		urls.push({ file, links, obj, host });
 	}
 	// render
 	var htmls = {};
@@ -52,21 +54,8 @@ module.exports = function(waw){
 		let url = req.url.split('/').join('');
 		if(content[req.get('host').toLowerCase()+url]) return res.send(content[req.get('host').toLowerCase()+url]);
 		if(content[url]) return res.send(content[url]);
-		for (var i = 0; i < urls.length; i++) {
-			//if(waw.html(url+(urls[i].host||''))) return res.send(waw.html(url+(urls[i].host||'')));
-			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
-			for (var j = 0; j < urls[i].links.length; j++) {
-				if(urls[i].links[j] == url){
-					if(urls[i].obj){
-						let html = waw.derer.renderFile(urls[i].file, urls[i].obj);
-						return res.send(html);
-						//return res.send(waw.html(url+(urls[i].host||''), html));
-					}else{
-						return res.sendFile(urls[i].file);
-					}
-				}
-			}
-		}
+		if(files[req.get('host').toLowerCase()+url]) return res.send(files[req.get('host').toLowerCase()+url]);
+		if(files[url]) return res.send(files[url]);
 		next();
 	});
 }
