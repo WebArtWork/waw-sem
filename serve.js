@@ -16,7 +16,7 @@ module.exports = function(waw){
 			links[i] = links[i].split('/').join('');
 		}
 		if(host) host = host.toLowerCase();
-		urls.push({ file, links, obj, host});
+		urls.push({ file, links, obj, host });
 	}
 	// render
 	var htmls = {};
@@ -45,12 +45,14 @@ module.exports = function(waw){
 		}
 		let url = req.url.split('/').join('');
 		for (var i = 0; i < urls.length; i++) {
-			if(waw.html(url+(urls[i].host||''))) return res.send(waw.html(url+(urls[i].host||'')));
+			//if(waw.html(url+(urls[i].host||''))) return res.send(waw.html(url+(urls[i].host||'')));
 			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
 			for (var j = 0; j < urls[i].links.length; j++) {
 				if(urls[i].links[j] == url){
 					if(urls[i].obj){
-						return res.send(waw.html(url+(urls[i].host||''), waw.derer.renderFile(urls[i].file, urls[i].obj)));
+						let html = waw.derer.renderFile(urls[i].file, urls[i].obj);
+						return res.send(html);
+						//return res.send(waw.html(url+(urls[i].host||''), html));
 					}else{
 						return res.sendFile(urls[i].file);
 					}
