@@ -7,15 +7,21 @@ module.exports = function(waw){
 		dists.push({ dir, opts });
 	}
 	// url
+	let content = {};
 	var urls = [];
 	waw.url = function(file, links, obj, host){
+		if(host) host = host.toLowerCase();
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
+		let html = waw.derer.renderFile(file, obj);
 		for (var i = 0; i < links.length; i++) {
 			links[i] = links[i].split('/').join('');
+			if(obj){
+				content[(host||'')+links[i]] = html;
+				console.log('SERVE: ', (host||'')+links[i]);
+			}
 		}
-		if(host) host = host.toLowerCase();
 		urls.push({ file, links, obj, host });
 	}
 	// render
@@ -44,6 +50,8 @@ module.exports = function(waw){
 			}
 		}
 		let url = req.url.split('/').join('');
+		if(content[req.get('host').toLowerCase()+url]) return res.send(content[req.get('host').toLowerCase()+url]);
+		if(content[url]) return res.send(content[url]);
 		for (var i = 0; i < urls.length; i++) {
 			//if(waw.html(url+(urls[i].host||''))) return res.send(waw.html(url+(urls[i].host||'')));
 			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
