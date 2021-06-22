@@ -9,8 +9,6 @@ module.exports = function(waw){
 	// url
 	var urls = [];
 	waw.url = function(file, links, obj, host){
-		console.log(links);
-		console.log(host);
 		if(typeof links == 'string'){
 			links = links.split(' ');
 		}
