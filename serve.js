@@ -43,14 +43,14 @@ module.exports = function(waw){
 				}
 			}
 		}
-		let url = req.url.split('/').join('') + (urls[i].host||'');
-		if(waw.html(url)) return res.send(waw.html(url));
+		let url = req.url.split('/').join('');
 		for (var i = 0; i < urls.length; i++) {
+			if(waw.html(url+(urls[i].host||''))) return res.send(waw.html(url+(urls[i].host||'')));
 			if(urls[i].host && urls[i].host != req.get('host').toLowerCase()) continue;
 			for (var j = 0; j < urls[i].links.length; j++) {
 				if(urls[i].links[j] == url){
 					if(urls[i].obj){
-						return res.send(waw.html(url, waw.derer.renderFile(urls[i].file, urls[i].obj)));
+						return res.send(waw.html(url+(urls[i].host||''), waw.derer.renderFile(urls[i].file, urls[i].obj)));
 					}else{
 						return res.sendFile(urls[i].file);
 					}
