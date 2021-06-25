@@ -39,6 +39,16 @@ module.exports = function(waw) {
 	/*
 	*	File Management
 	*/
+		waw.resized = {};
+		const upload_resized = function(req, res, part, opts){
+			let dirname = opts.dirname+req.body.file.split('.jpg')[0].split('.png')[0]+'/';
+			fs.mkdirSync(dirname, { recursive: true });
+			waw.dataUrlToLocation(req.body.dataUrl, dirname, req.body.name, ()=>{
+				let url = '/api/'+part+'/image/' + req.body.name + '?' + Date.now();
+				waw.resized[req.body.file] = url;
+				res.json(url);
+			});
+		}
 		const upload_image = function(req, res, part, opts){
 			if(!req.filename && typeof opts.rename == 'function'){
 				let filename = opts.rename(req, (filename)=>{
@@ -114,6 +124,9 @@ module.exports = function(waw) {
 			waw.app.post("/api/"+part+"/file"+(opts.name&&'/'+opts.name||''), waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
 				if(req.body.dataUrl) upload_image(req, res, part, opts);
 				else upload_file(req, res, part, opts);
+			});
+			waw.app.post("/api/"+part+"/resize"+(opts.name&&'/'+opts.name||''), waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
+				upload_resized(req, res, part, opts);
 			});
 			waw.app.post("/api/"+part+"/file/delete"+(opts.name&&'/'+opts.name||''), waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
 				let filename = req.body.url.split('/').pop();
