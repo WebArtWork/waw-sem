@@ -54,7 +54,7 @@ module.exports = function(waw){
 		let url = req.url.split('/').join('');
 		if(content[req.get('host').toLowerCase()+url]) return res.send(content[req.get('host').toLowerCase()+url]);
 		if(content[url]) return res.send(content[url]);
-		if(files[req.get('host').toLowerCase()+url]) return res.send(files[req.get('host').toLowerCase()+url]);
+		if(files[req.get('host').toLowerCase()+url]) return res.sendFile(files[req.get('host').toLowerCase()+url]);
 		if(files[url]) return res.send(files[url]);
 		next();
 	});
