@@ -2,13 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const mongoose = require('mongoose');
+const base = process.cwd()+'/server/';
 module.exports = function(waw) {
 	/*
 	*	File Servce
 	*/
 		const serve_file = function(opts) {
 			return function(req, res){
-				if (fs.existsSync(opts.dirname + req.params.file)) {
+				if (fs.existsSync(opts.dirname + req.params.file + '/' + req.params.size)) {
+					res.sendFile(opts.dirname + req.params.file + '/' + req.params.size);
+				}else if (fs.existsSync(opts.dirname + req.params.file)) {
 					res.sendFile(opts.dirname + req.params.file);
 				}else{
 					if(typeof opts.default == 'string' && fs.existsSync(opts.dirname + opts.default)){
@@ -39,14 +42,14 @@ module.exports = function(waw) {
 				waw.app.get("/api/"+part+"/avatar/:file/:name", serve_file(opts));
 		}
 		waw.derer.setFilter('resized', (src, size)=>{
-			src = src.replace('/image/', '/resized/');
-			src = src.spit('/');
-			src.splice(5, 0, size);
-			// test if file exists
-			// if not, use src, if src exsits
-			// if not use default picture waw.config.default
-			// if no default send default of sem part picture
-			return src.join('/');
+			let thumb = src.replace('/image/', '/resized/').split('.jpg')[0] + '/' + size + '.jpg';
+			if(fs.existsSync(base+thumb.split('/')[2]+'/files/'+thumb.split('/')[4]+'/'+size+'.jpg')){
+				return thumb;
+			}
+			if(fs.existsSync(base+src.split('/')[2]+'/files/'+src.split('/')[4].split('.jpg')[0]+'.jpg')){
+				return src;
+			}
+			return waw.config.default || __dirname + '/default.png';
 		});
 	/*
 	*	File Management
