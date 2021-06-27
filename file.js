@@ -45,9 +45,13 @@ module.exports = function(waw) {
 			let thumb = src.replace('/image/', '/resized/').split('.jpg')[0] + '/' + size + '.jpg';
 			if(fs.existsSync(base+thumb.split('/')[2]+'/files/'+thumb.split('/')[4]+'/'+size+'.jpg')){
 				return thumb;
+			}else {
+				console.log('Missing thumb: ', thumb);
 			}
 			if(fs.existsSync(base+src.split('/')[2]+'/files/'+src.split('/')[4].split('.jpg')[0]+'.jpg')){
 				return src;
+			}else {
+				console.log('Missing src: ', src);
 			}
 			return waw.config.default || __dirname + '/default.png';
 		});
