@@ -33,19 +33,29 @@ module.exports = function(waw) {
 			waw.app.get("/api/"+part+"/video/:file/:name", serve_file(opts));
 			waw.app.get("/api/"+part+"/image/:file", serve_file(opts));
 			waw.app.get("/api/"+part+"/image/:file/:name", serve_file(opts));
+			waw.app.get("/api/"+part+"/resized/:file/:size", serve_file(opts));
+			waw.app.get("/api/"+part+"/resized/:file/:size/:name", serve_file(opts));
 				waw.app.get("/api/"+part+"/avatar/:file", serve_file(opts));
 				waw.app.get("/api/"+part+"/avatar/:file/:name", serve_file(opts));
 		}
+		waw.derer.setFilter('resized', (src, size)=>{
+			src = src.replace('/image/', '/resized/');
+			src = src.spit('/');
+			src.splice(5, 0, size);
+			// test if file exists
+			// if not, use src, if src exsits
+			// if not use default picture waw.config.default
+			// if no default send default of sem part picture
+			return src.join('/');
+		});
 	/*
 	*	File Management
 	*/
-		waw.resized = {};
 		const upload_resized = function(req, res, part, opts){
 			let dirname = opts.dirname+req.body.file.split('.jpg')[0].split('.png')[0]+'/';
 			fs.mkdirSync(dirname, { recursive: true });
-			waw.dataUrlToLocation(req.body.dataUrl, dirname, req.body.name, ()=>{
-				let url = '/api/'+part+'/image/' + req.body.name + '?' + Date.now();
-				waw.resized[req.body.file] = url;
+			waw.dataUrlToLocation(req.body.dataUrl, dirname, req.body.name + '.jpg', ()=>{
+				let url = '/api/'+part+'/resized/' + req.body.file + '/' + req.body.name + '.jpg?' + Date.now();
 				res.json(url);
 			});
 		}
