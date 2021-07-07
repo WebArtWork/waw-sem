@@ -38,9 +38,10 @@ module.exports = function(waw){
 	// checkup
 	waw.use(function(req, res, next) {
 		if(req.url.indexOf('/api/')==0) return next();
+		const host = (req.get('host')||'').toLowerCase();
 		if(req.url.indexOf('.')>-1){
 			for (var i = 0; i < dists.length; i++) {
-				if(dists[i].opts.host && dists[i].opts.host != req.get('host').toLowerCase()) continue;
+				if(dists[i].opts.host && dists[i].opts.host != host) continue;
 				let url = req.url;
 				if(dists[i].opts.prefix){
 					if(req.url.indexOf(dists[i].opts.prefix)!=0) continue;
@@ -52,10 +53,10 @@ module.exports = function(waw){
 			}
 		}
 		let url = req.url.split('/').join('');
-		if(content[req.get('host').toLowerCase()+url]) return res.send(content[req.get('host').toLowerCase()+url]);
+		if(content[host+url]) return res.send(content[host+url]);
 		if(content[url]) return res.send(content[url]);
-		if(files[req.get('host').toLowerCase()+url]) return res.send(files[req.get('host').toLowerCase()+url]);
-		if(files[url]) return res.send(files[url]);
+		if(files[host+url]) return res.sendFile(files[host+url]);
+		if(files[url]) return res.sendFile(files[url]);
 		next();
 	});
 }

@@ -2,13 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const mongoose = require('mongoose');
+const base = process.cwd()+'/server/';
 module.exports = function(waw) {
 	/*
 	*	File Servce
 	*/
 		const serve_file = function(opts) {
 			return function(req, res){
-				if (fs.existsSync(opts.dirname + req.params.file)) {
+				if (fs.existsSync(opts.dirname + req.params.file + '/' + req.params.size)) {
+					res.sendFile(opts.dirname + req.params.file + '/' + req.params.size);
+				}else if (fs.existsSync(opts.dirname + req.params.file)) {
 					res.sendFile(opts.dirname + req.params.file);
 				}else{
 					if(typeof opts.default == 'string' && fs.existsSync(opts.dirname + opts.default)){
@@ -33,19 +36,33 @@ module.exports = function(waw) {
 			waw.app.get("/api/"+part+"/video/:file/:name", serve_file(opts));
 			waw.app.get("/api/"+part+"/image/:file", serve_file(opts));
 			waw.app.get("/api/"+part+"/image/:file/:name", serve_file(opts));
+			waw.app.get("/api/"+part+"/resized/:file/:size", serve_file(opts));
+			waw.app.get("/api/"+part+"/resized/:file/:size/:name", serve_file(opts));
 				waw.app.get("/api/"+part+"/avatar/:file", serve_file(opts));
 				waw.app.get("/api/"+part+"/avatar/:file/:name", serve_file(opts));
 		}
+		waw.derer.setFilter('resized', (src, size)=>{
+			let thumb = src.replace('/image/', '/resized/').split('.jpg')[0] + '/' + size + '.jpg';
+			if(fs.existsSync(base+thumb.split('/')[2]+'/files/'+thumb.split('/')[4]+'/'+size+'.jpg')){
+				return thumb;
+			}else {
+				console.log('Missing thumb: ', thumb);
+			}
+			if(fs.existsSync(base+src.split('/')[2]+'/files/'+src.split('/')[4].split('.jpg')[0]+'.jpg')){
+				return src;
+			}else {
+				console.log('Missing src: ', src);
+			}
+			return waw.config.default || __dirname + '/default.png';
+		});
 	/*
 	*	File Management
 	*/
-		waw.resized = {};
 		const upload_resized = function(req, res, part, opts){
 			let dirname = opts.dirname+req.body.file.split('.jpg')[0].split('.png')[0]+'/';
 			fs.mkdirSync(dirname, { recursive: true });
-			waw.dataUrlToLocation(req.body.dataUrl, dirname, req.body.name, ()=>{
-				let url = '/api/'+part+'/image/' + req.body.name + '?' + Date.now();
-				waw.resized[req.body.file] = url;
+			waw.dataUrlToLocation(req.body.dataUrl, dirname, req.body.name + '.jpg', ()=>{
+				let url = '/api/'+part+'/resized/' + req.body.file + '/' + req.body.name + '.jpg?' + Date.now();
 				res.json(url);
 			});
 		}
