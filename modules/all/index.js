@@ -1,3 +1,3 @@
-module.exports = function(waw) {
-	waw.crud('NAME', waw.crud_method('author all'));
+module.exports = async function(waw) {
+	waw.crud('NAME', waw.crud_method('all author'));
 };
