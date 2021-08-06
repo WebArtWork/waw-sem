@@ -25,7 +25,7 @@ module.exports = function(waw){
 	var sessionMaxAge = 365 * 24 * 60 * 60 * 1000;
 	if(typeof waw.config.session == 'number'){
 		sessionMaxAge = waw.config.session;
-	}	
+	}
 	var store;
 	if(waw.config.mongo){
 		let mongoAuth = '';
@@ -104,7 +104,7 @@ module.exports = function(waw){
 		waw.set_prepare = function(which, cb){
 			if(typeof cb == 'function' && which){
 				prepares[which] = cb;
-			}				
+			}
 		}
 	/*
 	*	Express Middleware Support
@@ -188,7 +188,7 @@ module.exports = function(waw){
 					ensure: waw.next_user
 				},
 				update: {
-					ensure: waw.next_user					
+					ensure: waw.next_user
 				},
 				delete: {
 					ensure: waw.next_user
@@ -279,11 +279,21 @@ module.exports = function(waw){
 			let timestamp = _id.toString().substring(0,8);
 			return new Date(parseInt(timestamp,16)*1000);
 		});
-		waw.derer.setFilter('c', function(path, obj){
-			path = path.toString();
-			if (fs.existsSync(process.cwd() + path + '/index.html')) {
-				return waw.derer.compileFile(process.cwd() + path + '/index.html')(obj||{});
-			}else return 'No component found for: '+path;			
+		waw.derer.setFilter('c', function(file, obj){
+			file = file.toString();
+			if (fs.existsSync(process.cwd() + file + '/index.html')) {
+				return waw.derer.compileFile(process.cwd() + file + '/index.html')(obj||{});
+			}
+			file = path.normalize(file);
+			file = file.split(path.sep);
+			file.shift();
+			file.shift();
+			file.unshift('');
+			file = file.join(path.sep);
+			if (fs.existsSync(process.cwd() + file + path.sep + 'index.html')) {
+				return waw.derer.compileFile(process.cwd() + file + '/index.html')(obj||{});
+			}
+			return 'No component found for: '+file;
 		});
 		// derer.setFilter('tr', waw._tr);
 		// derer.setFilter('translate', waw._tr);
@@ -336,7 +346,7 @@ move to user
 waw.socket.add(function(socket){
 	if (socket.request.user) {
 		socket.join(socket.request.user._id);
-	}	
+	}
 })
 
 /*
