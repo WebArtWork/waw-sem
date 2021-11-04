@@ -1,20 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-var session = require('express-session');
+const session = require('express-session');
 const app = express();
 const server = require('http').Server(app);
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-//const bodyParser = require('body-parser');
-const formidable = require('formidable');
-const mongoose = require('mongoose');
 const derer = require('derer');
 const io = require('socket.io')(server, {
 	cors: {
 		origins: '*:*',
-		methods: ["GET", "POST"],
 		transports: ['websocket', 'polling'],
 		credentials: false
 	},
@@ -56,7 +53,6 @@ module.exports = function(waw){
 		app.use(favicon(process.cwd() + waw.config.icon));
 	app.use(cookieParser());
 	app.use(methodOverride('X-HTTP-Method-Override'));
-	/*
 	app.use(bodyParser.urlencoded({
 		'extended': 'true',
 		'limit': '50mb'
@@ -64,7 +60,6 @@ module.exports = function(waw){
 	app.use(bodyParser.json({
 		'limit': '50mb'
 	}));
-	*/
 	if(!waw.config.port) waw.config.port=8080;
 	server.listen(waw.config.port);
 	console.log("App listening on port " + (waw.config.port));

@@ -9,7 +9,7 @@
 	"dependencies": {
 		"mongoose": "5.10.15",
 		"connect-mongo": "3.2.0",
-		"formidable": "*",
+		"body-parser": "*",
 		"method-override": "*",
 		"serve-favicon": "*",
 		"express-session": "*",
