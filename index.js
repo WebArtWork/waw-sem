@@ -7,7 +7,7 @@ const server = require('http').Server(app);
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
-const bodyParser = require('body-parser');
+//const bodyParser = require('body-parser');
 const formidable = require('formidable');
 const mongoose = require('mongoose');
 const derer = require('derer');
@@ -56,6 +56,7 @@ module.exports = function(waw){
 		app.use(favicon(process.cwd() + waw.config.icon));
 	app.use(cookieParser());
 	app.use(methodOverride('X-HTTP-Method-Override'));
+	/*
 	app.use(bodyParser.urlencoded({
 		'extended': 'true',
 		'limit': '50mb'
@@ -63,6 +64,7 @@ module.exports = function(waw){
 	app.use(bodyParser.json({
 		'limit': '50mb'
 	}));
+	*/
 	if(!waw.config.port) waw.config.port=8080;
 	server.listen(waw.config.port);
 	console.log("App listening on port " + (waw.config.port));
