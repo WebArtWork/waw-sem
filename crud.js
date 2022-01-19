@@ -1,3 +1,4 @@
+const fs = require('fs);
 module.exports = function(waw) {
 	waw.resp = function(body){
 		return body;
@@ -73,11 +74,11 @@ module.exports = function(waw) {
 			var crudName = crud.name.toLowerCase();
 			var Schema = part.__root + '/schema_' + crudName+ '.js';
 			if(unique) Schema = part.__root + '/schema.js';
-			if (!waw.fs.existsSync(Schema)) {
-				var data = waw.fs.readFileSync(__dirname+'/schema.js', 'utf8');
+			if (!fs.existsSync(Schema)) {
+				var data = fs.readFileSync(__dirname+'/schema.js', 'utf8');
 				data = data.split('CNAME').join(crudName.toString().charAt(0).toUpperCase() + crudName.toString().substr(1).toLowerCase());
 				data = data.split('NAME').join(crudName);
-				waw.fs.writeFileSync(Schema, data, 'utf8');
+				fs.writeFileSync(Schema, data, 'utf8');
 			}
 			Schema = require(Schema);
 			if(typeof Schema == 'function' && !Schema.name){
