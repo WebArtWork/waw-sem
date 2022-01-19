@@ -1,4 +1,4 @@
-const fs = require('fs);
+const fs = require('fs');
 module.exports = function(waw) {
 	waw.resp = function(body){
 		return body;
