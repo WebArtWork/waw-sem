@@ -4,8 +4,7 @@
 ## Runners
 ### Generate new part
 `waw add PART_NAME REPO_LINK BRANCH`<br>
-`waw add`<br>
-`waw a`
+`waw add`
 
 ## waw Script
 ### This function accept configuration for `['create', 'get', 'fetch', 'update', 'unique', 'delete']` for the selected part.

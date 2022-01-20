@@ -13,40 +13,45 @@ const readline = require('readline').createInterface({
 		return text.split(from).join(to);
 	}
 	const list = {
-		'1) Default Module': 'default',
-		'2) Author Use': 'author',
-		'3) All Management': 'all',
-		'4) Offline Mode': 'offline'
+		'1) Default Module': 'default'
 	};
 	const generate_local = function(params) {
-		let text = 'Which project you want to start with?', counter=0, modules={};
-		for(let key in list){
-			modules[++counter] = list[key];
-			text += '\n'+key;
+		if (Object.keys(list) > 1 && !params.local_module) {
+			let text = 'Which module you want to start with?', counter=0, modules={};
+			for(let key in list){
+				modules[++counter] = list[key];
+				text += '\n'+key;
+			}
+			text += '\nChoose number: ';
+			return readline.question(text, function(answer){
+				if(answer && modules[parseInt(answer)]){
+					params.local_module = modules[parseInt(answer)];
+				}
+				generate_local(params);
+			});
 		}
-		text += '\nChoose number: ';
-		readline.question(text, function(answer){
-			if(!answer||!modules[parseInt(answer)]) return generate_local(params);
-			let data;
-			fs.mkdirSync(params.folder, { recursive: true });
-			// index.js
-			data = fs.readFileSync(__dirname+'/modules/'+modules[parseInt(answer)]+'/index.js', 'utf8');
-			data = rpl(data, 'CNAME', cname(params.new_part.name));
-			data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-			fs.writeFileSync(params.folder+'/index.js', data, 'utf8');
-			// part.json
-			data = fs.readFileSync(__dirname+'/modules/'+modules[parseInt(answer)]+'/part.json', 'utf8');
-			data = rpl(data, 'CNAME', cname(params.new_part.name));
-			data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-			fs.writeFileSync(params.folder+'/part.json', data, 'utf8');
-			// schema.js
-			data = fs.readFileSync(__dirname+'/modules/'+modules[parseInt(answer)]+'/schema.js', 'utf8');
-			data = rpl(data, 'CNAME', cname(params.new_part.name));
-			data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-			fs.writeFileSync(params.folder+'/schema.js', data, 'utf8');
-			console.log('Module has been created');
-			process.exit(1);
-		});
+		if (!params.local_module) {
+			params.local_module = 'default';
+		}
+		let data;
+		fs.mkdirSync(params.folder, { recursive: true });
+		// index.js
+		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/index.js', 'utf8');
+		data = rpl(data, 'CNAME', cname(params.new_part.name));
+		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
+		fs.writeFileSync(params.folder+'/index.js', data, 'utf8');
+		// module.json
+		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/module.json', 'utf8');
+		data = rpl(data, 'CNAME', cname(params.new_part.name));
+		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
+		fs.writeFileSync(params.folder+'/module.json', data, 'utf8');
+		// schema.js1
+		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/schema.js', 'utf8');
+		data = rpl(data, 'CNAME', cname(params.new_part.name));
+		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
+		fs.writeFileSync(params.folder+'/schema.js', data, 'utf8');
+		console.log('Module has been created');
+		process.exit(1);
 	}
 	const new_part = function(params) {
 		if (!fs.existsSync(process.cwd()+'/config.json')) {
