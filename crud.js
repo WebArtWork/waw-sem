@@ -255,7 +255,7 @@ module.exports = function(waw) {
 						crud_unique(crud.unique[i]);
 					}
 				}else if(typeof crud.unique == 'object') crud_unique(crud.unique);
-			/*  
+			/*
 			*	Delete
 			*/
 				var crud_delete = function(name){
@@ -298,17 +298,17 @@ module.exports = function(waw) {
 			*	End of CRUD
 			*/
 		}
-		for (var i = 0; i < waw.parts.length; i++) {
-			if(waw.parts[i].crud){
-				if(Array.isArray(waw.parts[i].crud)){
-					for (var j = 0; j < waw.parts[i].crud.length; j++) {
-						add_crud(waw.parts[i].crud[j], waw.parts[i], false);
+		for (var i = 0; i < waw.modules.length; i++) {
+			if(waw.modules[i].crud){
+				if(Array.isArray(waw.modules[i].crud)){
+					for (var j = 0; j < waw.modules[i].crud.length; j++) {
+						add_crud(waw.modules[i].crud[j], waw.modules[i], false);
 					}
 				}else{
-					if(!waw.parts[i].crud.name){
-						waw.parts[i].crud.name = waw.parts[i].name
+					if(!waw.modules[i].crud.name){
+						waw.modules[i].crud.name = waw.modules[i].name
 					}
-					add_crud(waw.parts[i].crud, waw.parts[i]);
+					add_crud(waw.modules[i].crud, waw.modules[i]);
 				}
 			}
 		}

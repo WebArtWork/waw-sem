@@ -55,7 +55,7 @@ module.exports = function(waw) {
 					console.log('Missing src: ', src);
 				}
 			}catch(err){}
-			return waw.config.default || __dirname + '/default.png';				
+			return waw.config.default || __dirname + '/default.png';
 		});
 	/*
 	*	File Management
@@ -89,7 +89,7 @@ module.exports = function(waw) {
 					});
 				}else{
 					res.json(req.files);
-				}				
+				}
 			});
 		}
 		const process_file = function(req, file, part, opts){
@@ -137,7 +137,7 @@ module.exports = function(waw) {
 						res.json(req.files);
 					}
 				});
-			});			
+			});
 		}
 		const manage = function(part, opts){
 			waw.app.post("/api/"+part+"/file"+(opts.name&&'/'+opts.name||''), waw.middleware(opts.ensure || waw.role('admin')), function(req, res) {
@@ -171,28 +171,28 @@ module.exports = function(waw) {
 	*	Config Files
 	*/
 		let options = {};
-		for (var i = 0; i < waw.parts.length; i++) {
-			if(typeof waw.parts[i].file == 'string'){
-				waw.parts[i].file = {dirname:waw.parts[i].file};
+		for (var i = 0; i < waw.modules.length; i++) {
+			if(typeof waw.modules[i].file == 'string'){
+				waw.modules[i].file = {dirname:waw.modules[i].file};
 			}
-			if(typeof waw.parts[i].file == 'object'){
-				options[waw.parts[i].name.toLowerCase()] = {
-					dirname: waw.parts[i].__root + '/' + (waw.parts[i].file.dirname||'files') + '/',
-					part: waw.parts[i]
+			if(typeof waw.modules[i].file == 'object'){
+				options[waw.modules[i].name.toLowerCase()] = {
+					dirname: waw.modules[i].__root + '/' + (waw.modules[i].file.dirname||'files') + '/',
+					part: waw.modules[i]
 				};
-				if(Array.isArray(waw.parts[i].file.options)){
-					for (var j = 0; j < waw.parts[i].file.options.length; j++) {
-						if(typeof waw.parts[i].file.options[j] != 'string') continue;
-						options[waw.parts[i].file.options[j].toLowerCase()] = {
-							dirname: waw.parts[i].__root + '/' + (waw.parts[i].file.dirname||'files') + '/',
-							part: waw.parts[i]
+				if(Array.isArray(waw.modules[i].file.options)){
+					for (var j = 0; j < waw.modules[i].file.options.length; j++) {
+						if(typeof waw.modules[i].file.options[j] != 'string') continue;
+						options[waw.modules[i].file.options[j].toLowerCase()] = {
+							dirname: waw.modules[i].__root + '/' + (waw.modules[i].file.dirname||'files') + '/',
+							part: waw.modules[i]
 						};
 					}
 				}
 			}else{
-				options[waw.parts[i].name.toLowerCase()] = {
-					dirname: waw.parts[i].__root + '/files/',
-					part: waw.parts[i]
+				options[waw.modules[i].name.toLowerCase()] = {
+					dirname: waw.modules[i].__root + '/files/',
+					part: waw.modules[i]
 				};
 			}
 		}
