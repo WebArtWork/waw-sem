@@ -15,8 +15,8 @@ const readline = require('readline').createInterface({
 	const list = {
 		'1) Default Module': 'default'
 	};
-	const generate_local = function(params) {
-		if (Object.keys(list) > 1 && !params.local_module) {
+	const generate_local = function(waw) {
+		if (Object.keys(list) > 1 && !waw.local_module) {
 			let text = 'Which module you want to start with?', counter=0, modules={};
 			for(let key in list){
 				modules[++counter] = list[key];
@@ -25,47 +25,51 @@ const readline = require('readline').createInterface({
 			text += '\nChoose number: ';
 			return readline.question(text, function(answer){
 				if(answer && modules[parseInt(answer)]){
-					params.local_module = modules[parseInt(answer)];
+					waw.local_module = modules[parseInt(answer)];
 				}
-				generate_local(params);
+				generate_local(waw);
 			});
 		}
-		if (!params.local_module) {
-			params.local_module = 'default';
+		if (!waw.local_module) {
+			waw.local_module = 'default';
 		}
 		let data;
-		fs.mkdirSync(params.folder, { recursive: true });
+		fs.mkdirSync(waw.folder, { recursive: true });
 		// index.js
-		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/index.js', 'utf8');
-		data = rpl(data, 'CNAME', cname(params.new_part.name));
-		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-		fs.writeFileSync(params.folder+'/index.js', data, 'utf8');
+		data = fs.readFileSync(__dirname+'/modules/'+waw.local_module+'/index.js', 'utf8');
+		data = rpl(data, 'CNAME', cname(waw.new_module.name));
+		data = rpl(data, 'NAME', waw.new_module.name.toLowerCase());
+		fs.writeFileSync(waw.folder+'/index.js', data, 'utf8');
 		// module.json
-		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/module.json', 'utf8');
-		data = rpl(data, 'CNAME', cname(params.new_part.name));
-		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-		fs.writeFileSync(params.folder+'/module.json', data, 'utf8');
+		data = fs.readFileSync(__dirname+'/modules/'+waw.local_module+'/module.json', 'utf8');
+		data = rpl(data, 'CNAME', cname(waw.new_module.name));
+		data = rpl(data, 'NAME', waw.new_module.name.toLowerCase());
+		fs.writeFileSync(waw.folder+'/module.json', data, 'utf8');
 		// schema.js1
-		data = fs.readFileSync(__dirname+'/modules/'+params.local_module+'/schema.js', 'utf8');
-		data = rpl(data, 'CNAME', cname(params.new_part.name));
-		data = rpl(data, 'NAME', params.new_part.name.toLowerCase());
-		fs.writeFileSync(params.folder+'/schema.js', data, 'utf8');
+		data = fs.readFileSync(__dirname+'/modules/'+waw.local_module+'/schema.js', 'utf8');
+		data = rpl(data, 'CNAME', cname(waw.new_module.name));
+		data = rpl(data, 'NAME', waw.new_module.name.toLowerCase());
+		fs.writeFileSync(waw.folder+'/schema.js', data, 'utf8');
 		console.log('Module has been created');
 		process.exit(1);
 	}
-	const new_part = function(params) {
+	const new_module = function(waw) {
+		if (!waw.config.server) {
+			console.log('You are located not in waw project');
+			process.exit(1);
+		}
 		if (!fs.existsSync(process.cwd()+'/config.json')) {
 			console.log('You are located not in waw project');
 			process.exit(0);
 		}
-		if(!params.new_part) params.new_part={};
-		if(!params.new_part.name){
-			if(params.argv.length){
-				if (fs.existsSync(process.cwd()+'/server/'+params.argv[0].toLowerCase())) {
+		if(!waw.new_module) waw.new_module={};
+		if(!waw.new_module.name){
+			if(waw.argv.length){
+				if (fs.existsSync(process.cwd()+'/server/'+waw.argv[0].toLowerCase())) {
 					console.log('This module already exists in current project');
 					process.exit(0);
 				}else{
-					params.new_part.name = params.argv[0];
+					waw.new_module.name = waw.argv[0];
 				}
 			}else{
 				return readline.question('Provide name for the module you want to create: ', function(answer){
@@ -73,37 +77,26 @@ const readline = require('readline').createInterface({
 						if (fs.existsSync(process.cwd()+'/'+answer.toLowerCase())) {
 							console.log('This module already exists in current project');
 						}else{
-							params.new_part.name = answer;
+							waw.new_module.name = answer;
 						}
 					}else{
 						console.log('Please type your module name');
 					}
-					new_part(params);
+					new_module(waw);
 				});
 			}
 		}
-		params.folder = process.cwd()+'/server/'+params.new_part.name.toLowerCase();
-		if(params.argv.length > 1){
-			fs.mkdirSync(params.folder, { recursive: true });
-			let repo = params.git(params.folder);
-			repo.init(function(){
-				repo.addRemote('origin', params.argv[1], function(err){
-					repo.fetch('--all', function(err){
-						let branch = 'master';
-						if(params.argv.length>2){
-							branch = params.argv[2];
-						}
-						repo.reset('origin/'+branch, err=>{
-							console.log('Module has been created');
-							process.exit(1);
-						});
-					});
-				});
-			});
-		}else generate_local(params);
+		waw.folder = process.cwd()+'/server/'+waw.new_module.name.toLowerCase();
+		if(waw.argv.length > 1){
+			fs.mkdirSync(waw.folder, { recursive: true });
+			waw.fetch(waw.folder, waw.argv[1], ()=>{
+				console.log('Module has been created');
+				process.exit(1);
+			}, waw.argv.length > 2 ? waw.argv[2] : 'master');
+		}else generate_local(waw);
 	};
-	module.exports.add = new_part;
-	module.exports.a = new_part;
+	module.exports.add = new_module;
+	module.exports.a = new_module;
 /*
 *	End of runner
 */
