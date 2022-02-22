@@ -302,6 +302,10 @@ module.exports = function(waw) {
 			if(waw.modules[i].crud){
 				if(Array.isArray(waw.modules[i].crud)){
 					for (var j = 0; j < waw.modules[i].crud.length; j++) {
+						if(!waw.modules[i].crud[j].name) {
+							console.log('CRUD on module '+waw.modules[i].name+" is not used because there is no name.");
+							continue;
+						}
 						add_crud(waw.modules[i].crud[j], waw.modules[i], false);
 					}
 				}else{
