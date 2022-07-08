@@ -1,14 +1,14 @@
 # SEM
-[Socket.io](https://socket.io), [Express.js](https://expressjs.com) and [Mongodb](https://www.mongodb.com) combo which let you work smoothly on the client side with documents. This part contain CRUD management which connect with wacom, wrcom and wvcom.
+[Socket.io](https://socket.io), [Express.js](https://expressjs.com) and [Mongodb](https://www.mongodb.com) combo which let you work smoothly on the client side with documents. This module contain CRUD management which connect with wacom, wrcom and wvcom.
 
 ## Runners
-### Generate new part
-`waw add PART_NAME REPO_LINK BRANCH`<br>
+### Generate new module
+`waw add MODULE_NAME REPO_LINK BRANCH`<br>
 `waw add`
 
 ## waw Script
-### This function accept configuration for `['create', 'get', 'fetch', 'update', 'unique', 'delete']` for the selected part.
-`waw.crud(part, config)`
+### This function accept configuration for `['create', 'get', 'fetch', 'update', 'unique', 'delete']` for the selected module.
+`waw.crud(module, config)`
 ### Variable which contain url for mongodb connection
 `waw.mongoUrl`
 ### Variable which has the storage where sessions will be kept
