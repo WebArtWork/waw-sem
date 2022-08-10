@@ -96,10 +96,10 @@ module.exports = function(waw) {
 			req.file = file;
 			return function(next){
 				const complete = (name)=>{
-					fs.renameSync(file.path, file.path+'_'+name);
+					fs.renameSync(file.filepath, file.filepath+'_'+name);
 					req.files.push({
-						url: '/api/'+part+'/file/'+path.basename(file.path+'_'+name)+'/'+file.name.split(' ').join(''),
-						name: file.name
+						url: '/api/'+part+'/file/'+path.basename(file.filepath+'_'+name)+'/'+file.originalFilename.split(' ').join(''),
+						name: file.originalFilename
 					});
 					next();
 				}
@@ -109,7 +109,7 @@ module.exports = function(waw) {
 					});
 					if(name) complete(name);
 				}else{
-					complete(file.name);
+					complete(file.originalFilename);
 				}
 			}
 		}
