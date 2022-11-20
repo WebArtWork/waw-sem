@@ -1,5 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema({
+const mongoose = require('mongoose');
+
+const Schema = mongoose.Schema({
 	name: String,
 	description: String,
 	author: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
@@ -9,8 +10,11 @@ var Schema = mongoose.Schema({
 
 Schema.methods.create = function(obj, user, sd) {
 	this.author = user._id;
+
 	this.moderators = [user._id];
+
 	this.name = obj.name;
+
 	this.description = obj.description;
 }
 
