@@ -1,3 +1,3 @@
-module.exports = async function(waw) {
+module.exports = async waw => {
 	// add your router code
 };

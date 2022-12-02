@@ -3,9 +3,17 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema({
 	name: String,
 	description: String,
-	author: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-	moderators: [{type: mongoose.Schema.Types.ObjectId, sparse: true, ref: 'User'}],
-	url: {type: String, unique: true, sparse: true, trim: true}
+	author: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
+	},
+	moderators: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			sparse: true,
+			ref: 'User'
+		}
+	]
 });
 
 Schema.methods.create = function(obj, user, sd) {
