@@ -28,6 +28,10 @@
 ### Express middleware which ensure that `req.user` exists.
 `waw.ensure`
 
+## Passport.js
+If you need previous `sem` version which had passport things, you can use
+[sem Passport](https://github.com/WebArtWork/sempassport). Simply edit your `config.json` file in modules array replace `sem` to `sempassport`.
+
 ## Contributing
 Thanks for your interest in contributing! Read up on our guidelines for
 [contributing](https://github.com/WebArtWork/sem/CONTRIBUTING.md)
