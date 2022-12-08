@@ -16,7 +16,7 @@ const Schema = mongoose.Schema({
 	]
 });
 
-Schema.methods.create = function(obj, user, sd) {
+Schema.methods.create = (obj, user, waw) => {
 	this.author = user._id;
 
 	this.moderators = [user._id];
