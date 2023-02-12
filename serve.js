@@ -15,11 +15,25 @@ module.exports = async (waw) => {
 
 	const files = {};
 
+	const get = (url, file) => {
+		waw.app.get(url, (req, res) => {
+			res.sendFile(file);
+		});
+	}
+
 	waw.url = (file, links, obj, host) => {
 		if (host) host = host.toLowerCase();
 
-		if (typeof links == "string") {
+		if (typeof links === "string") {
 			links = links.split(" ");
+		}
+
+		for (let i = links.length - 1; i >= 0; i--) {
+			if (links[i].indexOf('/:')) {
+				get(links[i], file);
+
+				links.splice(i, 1);
+			}
 		}
 
 		let html = waw.derer.renderFile(file, obj);
