@@ -6,8 +6,8 @@ module.exports = function(waw) {
 	/*
 	*	Crud Fill
 	*/
-		var fill_crud = function(part, which, config){
-			var prefix = which+'_'+part+(config.name&&('_'+config.name)||'');
+		const fill_crud = function(part, which, config){
+			const prefix = which+'_'+part+(config.name&&('_'+config.name)||'');
 			if(typeof config.required == 'string'){
 				config.required = config.required.split(' ');
 			}
@@ -56,7 +56,7 @@ module.exports = function(waw) {
 			return function(req, res, next){
 				let required = waw[name.replace('ensure_','required_')];
 				if(required){
-					for (var i = 0; i < required.length; i++) {
+					for (let i = 0; i < required.length; i++) {
 						if(!req.body[required[i]]){
 							return res.json(waw.resp(null, 410, required[i]+' field should not be left blank.'));
 						}
@@ -69,29 +69,40 @@ module.exports = function(waw) {
 				}
 			}
 		}
-		var add_crud = function(crud, part, unique=true){
-			var partName = part.name.toLowerCase();
-			var crudName = crud.name.toLowerCase();
-			var Schema = part.__root + '/schema_' + crudName+ '.js';
+		const add_crud = function(crud, part, unique=true){
+			const crudName = crud.name.toLowerCase();
+
+			let Schema = part.__root + '/schema_' + crudName+ '.js';
+
 			if(unique) Schema = part.__root + '/schema.js';
+
 			if (!fs.existsSync(Schema)) {
-				var data = fs.readFileSync(__dirname+'/schema.js', 'utf8');
+				let data = fs.readFileSync(__dirname+'/schema.js', 'utf8');
+
 				data = data.split('CNAME').join(crudName.toString().charAt(0).toUpperCase() + crudName.toString().substr(1).toLowerCase());
+
 				data = data.split('NAME').join(crudName);
+
 				fs.writeFileSync(Schema, data, 'utf8');
 			}
+
 			Schema = require(Schema);
+
 			if(typeof Schema == 'function' && !Schema.name){
 				Schema = Schema(waw);
 			}
-			var router = waw.router('/api/'+crudName);
-			var save = function(doc, res, emit){
+
+			const router = waw.router('/api/'+crudName);
+
+			const save = function(doc, res, emit){
 				doc.save(function(err){
 					if(err){
 						console.log(err);
 						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					}
+
 					waw.emit(emit, doc);
+
 					res.json(waw.resp(doc, 200, 'Successful'));
 				});
 			}
@@ -99,44 +110,62 @@ module.exports = function(waw) {
 			*	Create
 			*/
 				router.post("/create", ensure('ensure_create_'+crudName), function(req, res) {
-					var doc = new Schema();
-					if(typeof doc.create !== 'function'){
+					const doc = new Schema();
+
+					const final_name = '_get_' + crudName;
+
+					if (
+						typeof waw['query' + final_name] !== 'function' &&
+						typeof doc.create !== 'function'
+					) {
 						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
 					}
-					doc.create(req.body, req.user, waw);
+
+					if (typeof doc.create === 'function') {
+						doc.create(req.body, req.user, waw);
+					}
+
+					if (typeof waw['query' + final_name] === 'function') {
+						const fields = waw['query' + final_name](req);
+
+						for (const field in fields) {
+							doc[field] = fields[field];
+						}
+					}
+
 					save(doc, res, crudName+'_create');
 				});
 			/*
 			*	Read
 			*/
-				var get_unique = {};
-				var crud_get = function(name){
+				const get_unique = {};
+				const crud_get = function(name){
 					if(get_unique[name]) return;
 					get_unique[name] = true;
 					var final_name = '_get_'+crudName;
 					if(name) final_name += '_'+name;
 					router.get("/get"+name, ensure('ensure'+final_name), function(req, res) {
-						var query = waw['query'+final_name]&&waw['query'+final_name](req, res)||{
+						let query = waw['query'+final_name]&&waw['query'+final_name](req, res)||{
 							moderators: req.user&&req.user._id
 						};
 						query = Schema.find(query);
-						var sort = waw['sort'+final_name]&&waw['sort'+final_name](req, res)||false;
+						let sort = waw['sort'+final_name]&&waw['sort'+final_name](req, res)||false;
 						if(sort){
 							query.sort(sort);
 						}
-						var skip = waw['skip'+final_name]&&waw['skip'+final_name](req, res)||false;
+						let skip = waw['skip'+final_name]&&waw['skip'+final_name](req, res)||false;
 						if(skip){
 							query.skip(skip);
 						}
-						var limit = waw['limit'+final_name]&&waw['limit'+final_name](req, res)||false;
+						let limit = waw['limit'+final_name]&&waw['limit'+final_name](req, res)||false;
 						if(limit){
 							query.limit(limit);
 						}
-						var select = waw['select'+final_name]&&waw['select'+final_name](req, res)||false;
+						let select = waw['select'+final_name]&&waw['select'+final_name](req, res)||false;
 						if(select){
 							query.select(select);
 						}
-						var populate = waw['populate'+final_name]&&waw['populate'+final_name](req, res)||false;
+						let populate = waw['populate'+final_name]&&waw['populate'+final_name](req, res)||false;
 						if(populate){
 							query.populate(populate);
 						}
@@ -149,7 +178,7 @@ module.exports = function(waw) {
 					});
 				}
 				if(Array.isArray(crud.get)){
-					for (var i = 0; i < crud.get.length; i++) {
+					for (let i = 0; i < crud.get.length; i++) {
 						crud_get(crud.get[i]);
 					}
 				}else if(typeof crud.get == 'string') crud_get(crud.get[i]);
@@ -157,7 +186,7 @@ module.exports = function(waw) {
 			/*
 			*	Fetch
 			*/
-				var crud_fetch = function(name){
+			const crud_fetch = function(name){
 					let final_name = '_fetch_'+crudName;
 					if(name) final_name += '_'+name;
 					router.post("/fetch"+(name||''), ensure('ensure'+final_name), function(req, res) {
@@ -182,14 +211,14 @@ module.exports = function(waw) {
 					});
 				}
 				if(Array.isArray(crud.fetch)){
-					for (var i = 0; i < crud.fetch.length; i++) {
+					for (let i = 0; i < crud.fetch.length; i++) {
 						crud_fetch(crud.fetch[i]);
 					}
 				}else crud_fetch('');
 			/*
 			*	Update
 			*/
-				var crud_update = function(upd){
+				const crud_update = function(upd){
 					let final_name = '_update_'+crudName;
 					if(upd.name) final_name += '_'+upd.name;
 					router.post("/update"+(upd.name||''), ensure('ensure'+final_name), function(req, res) {

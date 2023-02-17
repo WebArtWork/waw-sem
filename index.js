@@ -20,10 +20,13 @@ const io = require('socket.io')(server, {
 
 module.exports = function(waw){
 	var sessionMaxAge = 365 * 24 * 60 * 60 * 1000;
+
 	if(typeof waw.config.session == 'number'){
 		sessionMaxAge = waw.config.session;
 	}
+
 	var store;
+
 	if(waw.config.mongo){
 		let mongoAuth = '';
 		if(waw.config.mongo.user&&waw.config.mongo.pass){
@@ -31,11 +34,13 @@ module.exports = function(waw){
 		}
 		waw.mongoUrl = 'mongodb://'+mongoAuth+(waw.config.mongo.host||'localhost')+':'+(waw.config.mongo.port||'27017')+'/'+(waw.config.mongo.db||'test');
 	}
+
 	if(waw.mongoUrl){
 		store = new(require("connect-mongo")(session))({
 			url: waw.mongoUrl
 		});
 	}
+
 	app.use(session({
 		key: 'express.sid.'+waw.config.prefix,
 		secret: 'thisIsCoolSecretFromWaWFramework'+waw.config.prefix,
@@ -48,30 +53,45 @@ module.exports = function(waw){
 		rolling: true,
 		store: store
 	}));
+
 	waw.store = store;
-	if(waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon))
+
+	if (waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon)) {
 		app.use(favicon(process.cwd() + waw.config.icon));
+	}
+
 	app.use(cookieParser());
+
 	app.use(methodOverride('X-HTTP-Method-Override'));
+
 	app.use(bodyParser.urlencoded({
 		'extended': 'true',
 		'limit': '50mb'
 	}));
+
 	app.use(bodyParser.json({
 		'limit': '50mb'
 	}));
+
 	if(!waw.config.port) waw.config.port=8080;
+
 	server.listen(waw.config.port);
+
 	console.log("App listening on port " + (waw.config.port));
+
 	/*
 	*	Helpers
 	*/
 		waw.router = function(api){
-			var router = express.Router();
+			const router = express.Router();
+
 			app.use(api, router);
+
 			return router;
 		}
+
 		waw.app = app;
+
 		waw.express = express;
 	/*
 	*	Use
@@ -80,9 +100,11 @@ module.exports = function(waw){
 			req.url = req.originalUrl.toLowerCase().split('?')[0];
 			next();
 		}];
+
 		waw.use = function(func){
 			use.push(func);
 		}
+
 		app.use(function(req, res, next){
 			serial(use, next, function(func, nx){
 				if(typeof func == 'function') func(req, res, nx);
@@ -93,11 +115,13 @@ module.exports = function(waw){
 	*	Prepare
 	*/
 		const prepares = {};
+
 		waw.prepare = function(which, req, res, next){
 			if(typeof prepares[which] == 'function'){
 				prepares[which](req, res, next);
 			}else next({});
 		}
+
 		waw.set_prepare = function(which, cb){
 			if(typeof cb == 'function' && which){
 				prepares[which] = cb;
@@ -108,26 +132,28 @@ module.exports = function(waw){
 	*/
 		waw.middleware = function(which){
 			return function(req, res, next){
-				if(typeof which == 'function'){
+				if(typeof which === 'function'){
 					which(req, res, next);
 				}else if(typeof waw[which] == 'function'){
 					waw[which](req, res, next);
 				}else next();
 			}
 		}
+
 		waw.ensure = (req, res, next)=>{
 			if(req.user) next();
 			else res.json(waw.resp(false));
 		}
-		waw.role = function(roles, extra){
-			if(typeof roles == 'string'){
+
+		waw.role = function(roles, middleware){
+			if (typeof roles === 'string') {
 				roles = roles.split(' ');
 			}
 			return function(req, res, next){
 				if(req.user && req.user.is){
-					for (var i = 0; i < roles.length; i++) {
+					for (let i = 0; i < roles.length; i++) {
 						if(req.user.is[roles[i]]){
-							if(extra) extra(req, res, next);
+							if(middleware) middleware(req, res, next);
 							else next();
 							return;
 						}
@@ -136,8 +162,11 @@ module.exports = function(waw){
 				res.json(false);
 			}
 		}
+
 		waw.next = (req, res, next)=>next();
+
 		waw.block = (req, res)=>res.send(false);
+
 		waw.next_user = (req, res, next)=>{
 			if(!req.user){
 				req.user = {
