@@ -1,6 +1,19 @@
 const fs = require("fs");
 
 module.exports = async (waw) => {
+	waw.host = (host, callback) => {
+		return (req, res, next) => {
+			if (
+				(!host || req.get('host').toLowerCase() === host.toLowerCase()) &&
+				typeof callback === 'function'
+			) {
+				callback(req, res, next);
+			} else {
+				next();
+			}
+		}
+	}
+
 	const dists = [];
 
 	waw.serve = (dir, opts = {}) => {
@@ -29,7 +42,7 @@ module.exports = async (waw) => {
 		}
 
 		for (let i = links.length - 1; i >= 0; i--) {
-			if (links[i].indexOf('/:')) {
+			if (links[i].indexOf('/:') > -1) {
 				get(links[i], file);
 
 				links.splice(i, 1);
