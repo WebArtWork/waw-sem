@@ -2,7 +2,7 @@
 	"name": "Sem",
 	"router": "index.js crud.js file.js serve.js",
 	"runner": "runner.js",
-	"priority": 920,
+	"priority": 905,
 	"git": {
 		"repo": "https://github.com/WebArtWork/sem.git"
 	},
