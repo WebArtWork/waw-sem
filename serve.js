@@ -69,9 +69,13 @@ module.exports = async (waw) => {
 		return htmls[url];
 	};
 
-	waw.render = (file, obj) => {
+	waw.render = function(file, obj, eject){
+		if (typeof eject === 'function') {
+			eject(obj);
+		}
+
 		return waw.derer.renderFile(file, obj);
-	};
+	}
 
 	waw.use((req, res, next) => {
 		if (req.url.indexOf("/api/") == 0) {
