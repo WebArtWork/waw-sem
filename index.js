@@ -36,9 +36,8 @@ module.exports = function(waw){
 	}
 
 	if(waw.mongoUrl){
-		store = new(require("connect-mongo")(session))({
-			url: waw.mongoUrl
-		});
+		const MongoStore = require('connect-mongo');
+		store = MongoStore.create({ mongoUrl: waw.mongoUrl });
 	}
 
 	app.use(session({

@@ -94,17 +94,12 @@ module.exports = function(waw) {
 
 			const router = waw.router('/api/'+crudName);
 
-			const save = function(doc, res, emit){
-				doc.save(function(err){
-					if(err){
-						console.log(err);
-						return res.json(waw.resp(null, 400, 'Unsuccessful update'));
-					}
+			const save = async (doc, res, emit) => {
+				await doc.save();
 
-					waw.emit(emit, doc);
+				waw.emit(emit, doc);
 
-					res.json(waw.resp(doc, 200, 'Successful'));
-				});
+				res.json(waw.resp(doc, 200, 'Successful'));
 			}
 			/*
 			*	Create
@@ -268,13 +263,12 @@ module.exports = function(waw) {
 								query = {};
 								query[upd.key] = req.body[upd.key];
 							}
-							Schema.findOne(query, function(err, sdoc){
+							Schema.findOne(query, async (err, sdoc) => {
 								if(sdoc) return res.json(waw.resp(doc[upd.key], 400, 'Already Exists'));
 								doc[upd.key] = req.body[upd.key];
 								doc.markModified(upd.key);
-								doc.save(function(err){
-									res.json(waw.resp(doc[upd.key], 200, 'Successful'));
-								});
+								await doc.save();
+								res.json(waw.resp(doc[upd.key], 200, 'Successful'));
 							});
 						});
 					});
