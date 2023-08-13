@@ -4,7 +4,7 @@
 	"runner": "runner.js",
 	"priority": 905,
 	"git": {
-		"repo": "https://github.com/WebArtWork/sem.git"
+		"repo": "https://github.com/WebArtWork/waw-sem.git"
 	},
 	"dependencies": {
 		"mongoose": "*",
