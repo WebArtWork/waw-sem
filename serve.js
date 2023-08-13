@@ -49,7 +49,7 @@ module.exports = async (waw) => {
 			}
 		}
 
-		let html = waw.derer.renderFile(file, obj);
+		let html = waw.wjst.renderFile(file, obj);
 
 		for (let i = 0; i < links.length; i++) {
 			links[i] = links[i].split("/").join("");
@@ -74,7 +74,7 @@ module.exports = async (waw) => {
 			eject(obj);
 		}
 
-		return waw.derer.renderFile(file, obj);
+		return waw.wjst.renderFile(file, obj);
 	}
 
 	waw.use((req, res, next) => {

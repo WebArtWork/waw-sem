@@ -8,7 +8,7 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const derer = require('derer');
+const wjst = require('wjst');
 const io = require('socket.io')(server, {
 	cors: {
 		origins: '*:*',
@@ -281,33 +281,34 @@ module.exports = function(waw){
 	/*
 	*	Server Rendering
 	*/
-		waw.derer = derer;
-		var dererOpts = {
+		waw.wjst = wjst;
+		waw.derer = wjst;
+		var wjstOpts = {
 			varControls: ['{{{', '}}}']
 		}
 		if(!waw.config.production){
-			dererOpts.cache = false;
+			wjstOpts.cache = false;
 		}
-		derer.setDefaults(dererOpts);
-		waw.app.engine('html', derer.renderFile);
+		wjst.setDefaults(wjstOpts);
+		waw.app.engine('html', wjst.renderFile);
 		waw.app.set('view engine', 'html');
 		waw.app.set('view cache', true);
-		derer.setFilter('string',function(input){
+		wjst.setFilter('string',function(input){
 			return input&&input.toString()||'';
 		});
-		derer.setFilter('fixlink',function(link){
+		wjst.setFilter('fixlink',function(link){
 			if(link.indexOf('//')>0) return link;
 			else return 'http://'+link;
 		});
-		waw.derer.setFilter('mongodate',function(_id){
+		waw.wjst.setFilter('mongodate',function(_id){
 			if(!_id) return new Date();
 			let timestamp = _id.toString().substring(0,8);
 			return new Date(parseInt(timestamp,16)*1000);
 		});
-		waw.derer.setFilter('c', function(file, obj){
+		waw.wjst.setFilter('c', function(file, obj){
 			file = file.toString();
 			if (fs.existsSync(process.cwd() + file + '/index.html')) {
-				return waw.derer.compileFile(process.cwd() + file + '/index.html')(obj||{});
+				return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj||{});
 			}
 			file = path.normalize(file);
 			file = file.split(path.sep);
@@ -316,13 +317,13 @@ module.exports = function(waw){
 			file.unshift('');
 			file = file.join(path.sep);
 			if (fs.existsSync(process.cwd() + file + path.sep + 'index.html')) {
-				return waw.derer.compileFile(process.cwd() + file + '/index.html')(obj||{});
+				return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj||{});
 			}
 			return 'No component found for: '+file;
 		});
 		// derer.setFilter('tr', waw._tr);
 		// derer.setFilter('translate', waw._tr);
-		waw._derer = derer;
+		waw._derer = wjst;
 	/*
 	*	Sockets
 	*/
@@ -366,8 +367,6 @@ module.exports = function(waw){
 }
 
 /*
-
-move to user
 waw.socket.add(function(socket){
 	if (socket.request.user) {
 		socket.join(socket.request.user._id);
@@ -375,21 +374,6 @@ waw.socket.add(function(socket){
 })
 
 /*
-const passportSocketIo = require("passport.socketio");
-io.use(passportSocketIo.authorize({
-	passport: sd._passport,
-	cookieParser: cookieParser,
-	key: 'express.sid.'+sd._config.prefix,
-	secret: 'thisIsCoolSecretFromWaWFramework'+sd._config.prefix,
-	store: store,
-	success: function(data, accept) {
-		accept();
-	},
-	fail: function(data, message, error, accept) {
-		accept();
-	}
-}));
-
 // sending to sender-client only
 socket.emit('message', "this is a test");
 // sending to all clients, include sender

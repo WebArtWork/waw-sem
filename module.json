@@ -17,6 +17,6 @@
 		"cookie-parser": "*",
 		"socket.io": "*",
 		"express": "*",
-		"derer": "*"
+    	"wjst": "^1.0.1"
 	}
 }

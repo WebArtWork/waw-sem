@@ -41,7 +41,7 @@ module.exports = function(waw) {
 				waw.app.get("/api/"+part+"/avatar/:file", serve_file(opts));
 				waw.app.get("/api/"+part+"/avatar/:file/:name", serve_file(opts));
 		}
-		waw.derer.setFilter('resized', (src, size)=>{
+		waw.wjst.setFilter('resized', (src, size)=>{
 			try{
 				let thumb = src.replace('/image/', '/resized/').split('.jpg')[0] + '/' + size + '.jpg';
 				if(fs.existsSync(base+thumb.split('/')[2]+'/files/'+thumb.split('/')[4]+'/'+size+'.jpg')){
