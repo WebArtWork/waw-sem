@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 const express = require('express');
 const session = require('express-session');
 const app = express();
@@ -19,13 +20,11 @@ const io = require('socket.io')(server, {
 });
 
 module.exports = function(waw){
-	var sessionMaxAge = 365 * 24 * 60 * 60 * 1000;
+	waw.mongoose = mongoose;
 
-	if(typeof waw.config.session == 'number'){
-		sessionMaxAge = waw.config.session;
-	}
+	const sessionMaxAge = typeof waw.config.session === 'number' ? waw.config.session : 365 * 24 * 60 * 60 * 1000;
 
-	var store;
+	let store;
 
 	if(waw.config.mongo){
 		let mongoAuth = '';
@@ -55,7 +54,10 @@ module.exports = function(waw){
 
 	waw.store = store;
 
-	if (waw.config.icon && fs.existsSync(process.cwd() + waw.config.icon)) {
+	if (
+		waw.config.icon &&
+		fs.existsSync(process.cwd() + waw.config.icon)
+	) {
 		app.use(favicon(process.cwd() + waw.config.icon));
 	}
 
