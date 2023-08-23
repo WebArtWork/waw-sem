@@ -34,7 +34,20 @@ module.exports = function(waw){
 		waw.mongoUrl = 'mongodb://'+mongoAuth+(waw.config.mongo.host||'localhost')+':'+(waw.config.mongo.port||'27017')+'/'+(waw.config.mongo.db||'test');
 	}
 
-	if(waw.mongoUrl){
+	if (
+		waw.mongoose.connection.readyState == 0 &&
+		waw.mongoUrl
+	) {
+		waw.mongoose.connect(waw.mongoUrl, {
+			useUnifiedTopology: true,
+			useNewUrlParser: true,
+			// useCreateIndex: true
+		});
+
+		waw.mongoose.Promise = global.Promise;
+	}
+
+	if (waw.mongoUrl) {
 		const MongoStore = require('connect-mongo');
 		store = MongoStore.create({ mongoUrl: waw.mongoUrl });
 	}

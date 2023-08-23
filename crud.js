@@ -76,31 +76,30 @@ module.exports = function (waw) {
 			}
 		};
 	};
-	const add_crud = function (crud, part, unique = true) {
-		const crudName = crud.name.toLowerCase();
+	const add_crud = async function (crud, part, unique = true) {
+		await waw.wait(1000);
+		const crudName = crud.name.toString().toLowerCase();
+		const crudCapitalName = crudName.charAt(0).toUpperCase() + crudName.substr(1).toLowerCase();
 
-		let Schema = part.__root + "/schema_" + crudName + ".js";
+		const schemaPath = unique ? part.__root + "/schema.js" : part.__root + "/schema_" + crudName + ".js";
 
-		if (unique) Schema = part.__root + "/schema.js";
-
-		if (!fs.existsSync(Schema)) {
+		if (!waw[crudCapitalName] && !fs.existsSync(schemaPath)) {
 			let data = fs.readFileSync(__dirname + "/schema.js", "utf8");
 
 			data = data
 				.split("CNAME")
-				.join(
-					crudName.toString().charAt(0).toUpperCase() +
-					crudName.toString().substr(1).toLowerCase()
-				);
+				.join(crudCapitalName);
 
 			data = data.split("NAME").join(crudName);
 
-			fs.writeFileSync(Schema, data, "utf8");
+			fs.writeFileSync(schemaPath, data, "utf8");
 		}
 
-		Schema = require(Schema);
+		const Schema = waw[crudCapitalName]
+			? waw[crudCapitalName]
+			: require(schemaPath);
 
-		if (typeof Schema == "function" && !Schema.name) {
+		if (typeof Schema === "function" && !Schema.name) {
 			Schema = Schema(waw);
 		}
 
@@ -376,15 +375,15 @@ module.exports = function (waw) {
 		if (waw.modules[i].crud) {
 			if (Array.isArray(waw.modules[i].crud)) {
 				for (var j = 0; j < waw.modules[i].crud.length; j++) {
-					if (!waw.modules[i].crud[j].name) {
+					if (waw.modules[i].crud[j].name) {
+						add_crud(waw.modules[i].crud[j], waw.modules[i], false);
+					} else {
 						console.log(
 							"CRUD on module " +
 							waw.modules[i].name +
 							" is not used because there is no name."
 						);
-						continue;
 					}
-					add_crud(waw.modules[i].crud[j], waw.modules[i], false);
 				}
 			} else {
 				if (!waw.modules[i].crud.name) {
