@@ -1,11 +1,9 @@
 {
+	"repo": "git@github.com:WebArtWork/waw-sem.git",
 	"name": "Sem",
 	"router": "index.js crud.js file.js serve.js",
 	"runner": "runner.js",
 	"priority": 905,
-	"git": {
-		"repo": "https://github.com/WebArtWork/waw-sem.git"
-	},
 	"dependencies": {
 		"mongoose": "*",
 		"connect-mongo": "*",
