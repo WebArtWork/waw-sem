@@ -9,7 +9,6 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const wjst = require('wjst');
 const io = require('socket.io')(server, {
 	cors: {
 		origins: '*:*',
@@ -293,52 +292,6 @@ module.exports = function(waw){
 			clearTimeout(timeout._timeout);
 			timeout._timeout = setTimeout(cb, time);
 		};
-	/*
-	*	Server Rendering
-	*/
-		waw.wjst = wjst;
-		waw.derer = wjst;
-		var wjstOpts = {
-			varControls: ['{{{', '}}}']
-		}
-		if(!waw.config.production){
-			wjstOpts.cache = false;
-		}
-		wjst.setDefaults(wjstOpts);
-		waw.app.engine('html', wjst.renderFile);
-		waw.app.set('view engine', 'html');
-		waw.app.set('view cache', true);
-		wjst.setFilter('string',function(input){
-			return input&&input.toString()||'';
-		});
-		wjst.setFilter('fixlink',function(link){
-			if(link.indexOf('//')>0) return link;
-			else return 'http://'+link;
-		});
-		waw.wjst.setFilter('mongodate',function(_id){
-			if(!_id) return new Date();
-			let timestamp = _id.toString().substring(0,8);
-			return new Date(parseInt(timestamp,16)*1000);
-		});
-		waw.wjst.setFilter('c', function(file, obj){
-			file = file.toString();
-			if (fs.existsSync(process.cwd() + file + '/index.html')) {
-				return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj||{});
-			}
-			file = path.normalize(file);
-			file = file.split(path.sep);
-			file.shift();
-			file.shift();
-			file.unshift('');
-			file = file.join(path.sep);
-			if (fs.existsSync(process.cwd() + file + path.sep + 'index.html')) {
-				return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj||{});
-			}
-			return 'No component found for: '+file;
-		});
-		// derer.setFilter('tr', waw._tr);
-		// derer.setFilter('translate', waw._tr);
-		waw._derer = wjst;
 	/*
 	*	Sockets
 	*/
