@@ -24,6 +24,17 @@ class Crud {
 			throw new Error(`Failed to get: ${error.message}`);
 		}
 	}
+	perPage = 20;
+	getName = '';
+	async page(page, name = '') {
+		try {
+			page--;
+			const response = await Http.get(`${this.api}/get${name || this.getName}?skip=${page * this.perPage}&limit=${this.perPage}`);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to get: ${error.message}`);
+		}
+	}
 
 	async update(data) {
 		try {
