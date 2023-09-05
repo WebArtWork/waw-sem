@@ -172,15 +172,15 @@ module.exports = function (waw) {
 					let skip =
 						(waw["skip" + final_name] && waw["skip" + final_name](req, res)) ||
 						false;
-					if (skip) {
-						query.skip(skip);
+					if (req.query.skip || skip) {
+						query.skip(Number(req.query.skip || skip));
 					}
 					let limit =
 						(waw["limit" + final_name] &&
 							waw["limit" + final_name](req, res)) ||
 						false;
-					if (limit) {
-						query.limit(limit);
+					if (req.query.limit || limit) {
+						query.limit(Number(req.query.limit || limit));
 					}
 					let select =
 						(waw["select" + final_name] &&
