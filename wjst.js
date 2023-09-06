@@ -1,3 +1,4 @@
+const fs = require('fs');
 const wjst = require('wjst');
 const path = require('path');
 module.exports = async function (waw) {
