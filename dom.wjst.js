@@ -6,7 +6,7 @@ class Dom {
 			let code = sourceElement.innerHTML;
 
 			for (const variable in variables) {
-				code = code.replace('{'+variable+'}', variables[variable]);
+				code = code.split('{' + variable + '}').join(variables[variable]);
 			}
 
 			return code;
