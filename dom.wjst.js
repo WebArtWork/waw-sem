@@ -47,7 +47,7 @@ class Dom {
 		}
 	}
 
-	delete(elementId) {
+	remove(elementId) {
 		const element = document.getElementById(elementId);
 
 		if (element) {
