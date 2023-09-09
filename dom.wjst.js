@@ -56,6 +56,18 @@ class Dom {
 			console.error(`Element with ID ${elementId} not found.`);
 		}
 	}
+
+		click(elementId, callback) {
+		const element = document.getElementById(elementId);
+
+		if (!element) {
+			console.error(`Element with ID '${id}' not found.`);
+			return;
+		}
+
+		// Attach the click event listener
+		element.addEventListener('click', callback);
+	}
 }
 
 export default new Dom();
