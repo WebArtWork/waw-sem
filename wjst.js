@@ -2,24 +2,66 @@ const fs = require('fs');
 const wjst = require('wjst');
 const path = require('path');
 module.exports = async function (waw) {
-	const serveFile = file => {
+	// TODO remove on version 23.3.X
+	if (typeof waw.each_file !== 'function') {
+		waw.each_file = async (callback, ext) => {
+			await waw.wait(500);
+			for (const module of waw.modules) {
+				const files = waw.getFiles(module.__root);
+				for (const file of files) {
+					if (
+						!ext ||
+						file.endsWith(ext)
+					) {
+						callback(file);
+					}
+				}
+			}
+		}
+	}
+
+	waw.each_file((file) => {
 		const name = path.basename(file).replace('.wjst.js', '');
 		waw.app.get('/api/wjst/' + name, (req, res) => {
 			res.sendFile(file);
 		});
-	}
+	}, '.wjst.js');
 
-	const checkModuleForWjst = module => {
-		const files = waw.getFiles(module.__root)
-		for (const file of files) {
-			if(file.endsWith('.wjst.js')) {
-				serveFile(file);
+	const services = {};
+	waw.Service = name => services[name];
+	waw.each_file((file) => {
+		const name = path.basename(file).replace('.service.js', '');
+		try {
+			const service = require(file);
+			if (service.constructor) {
+				services[name] = service;
 			}
+		} catch (error) {
+			console.log(file, error);
 		}
-	}
-	for (const module of waw.modules) {
-		checkModuleForWjst(module);
-	}
+	}, '.service.js');
+
+	const collections = {};
+	waw.Collection = name => collections[name];
+	waw.each_file((file) => {
+		const name = path.basename(file).replace('.collection.js', '');
+		try {
+			const collection = require(file)(waw);
+			if (typeof collection.find === 'function') {
+				collections[name] = collection;
+			}
+		} catch (error) {
+			console.log(file, error);
+		}
+	}, '.collection.js');
+
+	waw.each_file((file) => {
+		try {
+			require(file);
+		} catch (error) {
+			console.log(file, error);
+		}
+	}, '.api.js');
 
 	/*
 	*	Server Rendering
