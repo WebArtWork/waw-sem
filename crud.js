@@ -83,17 +83,17 @@ module.exports = function (waw) {
 
 		const schemaPath = unique ? part.__root + "/schema.js" : part.__root + "/schema_" + crudName + ".js";
 
-		if (!waw[crudCapitalName] && !fs.existsSync(schemaPath)) {
-			let data = fs.readFileSync(__dirname + "/schema.js", "utf8");
+		// if (!waw[crudCapitalName] && !fs.existsSync(schemaPath)) {
+		// 	let data = fs.readFileSync(__dirname + "/schema.js", "utf8");
 
-			data = data
-				.split("CNAME")
-				.join(crudCapitalName);
+		// 	data = data
+		// 		.split("CNAME")
+		// 		.join(crudCapitalName);
 
-			data = data.split("NAME").join(crudName);
+		// 	data = data.split("NAME").join(crudName);
 
-			fs.writeFileSync(schemaPath, data, "utf8");
-		}
+		// 	fs.writeFileSync(schemaPath, data, "utf8");
+		// }
 
 		const Schema = waw[crudCapitalName]
 			? waw[crudCapitalName]
