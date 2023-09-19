@@ -1,10 +1,11 @@
 const fs = require('fs');
 const wjst = require('wjst');
 const path = require('path');
+const { log } = require('console');
 module.exports = async function (waw) {
 	// TODO remove on version 23.3.X
-	if (typeof waw.each_file !== 'function') {
-		waw.each_file = async (callback, ext) => {
+	if (typeof waw.module_each_file !== 'function') {
+		waw.module_each_file = async (callback, ext) => {
 			await waw.wait(500);
 			for (const module of waw.modules) {
 				const files = waw.getFiles(module.__root);
@@ -20,7 +21,7 @@ module.exports = async function (waw) {
 		}
 	}
 
-	waw.each_file((file) => {
+	waw.module_each_file((file) => {
 		const name = path.basename(file).replace('.wjst.js', '');
 		waw.app.get('/api/wjst/' + name, (req, res) => {
 			res.sendFile(file);
@@ -29,7 +30,7 @@ module.exports = async function (waw) {
 
 	const services = {};
 	waw.Service = name => services[name];
-	waw.each_file((file) => {
+	waw.module_each_file((file) => {
 		const name = path.basename(file).replace('.service.js', '');
 		try {
 			const service = require(file);
@@ -43,7 +44,7 @@ module.exports = async function (waw) {
 
 	const collections = {};
 	waw.Collection = name => collections[name];
-	waw.each_file((file) => {
+	waw.module_each_file((file) => {
 		const name = path.basename(file).replace('.collection.js', '');
 		try {
 			const collection = require(file)(waw);
@@ -55,9 +56,9 @@ module.exports = async function (waw) {
 		}
 	}, '.collection.js');
 
-	waw.each_file((file) => {
+	waw.module_each_file((file) => {
 		try {
-			require(file);
+			require(file)(waw);
 		} catch (error) {
 			console.log(file, error);
 		}

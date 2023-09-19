@@ -6,12 +6,12 @@ module.exports = function (waw) {
 	let file = fs.readFileSync(waw.template + '/index.js', 'utf8');
 	file = file.split('CNAME').join(waw.Name);
 	file = file.split('NAME').join(waw.name);
-	fs.writeFileSync(waw.base + '/index.js', file, 'utf8');
+	fs.writeFileSync(waw.base + `/${waw.name}.api.js`, file, 'utf8');
 
 	file = fs.readFileSync(waw.template + '/schema.js', 'utf8');
 	file = file.split('CNAME').join(waw.Name);
 	file = file.split('NAME').join(waw.name);
-	fs.writeFileSync(waw.base + '/schema.js', file, 'utf8');
+	fs.writeFileSync(waw.base + `/${waw.name}.collection.js`, file, 'utf8');
 
 	file = fs.readFileSync(waw.template + '/module.json', 'utf8');
 	file = file.split('CNAME').join(waw.Name);
