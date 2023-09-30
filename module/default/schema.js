@@ -1,16 +1,15 @@
-const mongoose = require('mongoose');
-
-const Schema = mongoose.Schema({
+module.exports = async function(waw) {
+	const Schema = waw.mongoose.Schema({
 	name: String,
 	description: String,
 	data: {},
 	author: {
-		type: mongoose.Schema.Types.ObjectId,
+		type: waw.mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	moderators: [
 		{
-			type: mongoose.Schema.Types.ObjectId,
+			type: waw.mongoose.Schema.Types.ObjectId,
 			sparse: true,
 			ref: 'User'
 		}
@@ -28,5 +27,5 @@ Schema.methods.create = function (obj, user, waw) {
 
 	this.data = obj.data;
 }
-
-module.exports = mongoose.model('CNAME', Schema);
+	return waw.CNAME = waw.mongoose.model('CNAME', Schema);
+}
