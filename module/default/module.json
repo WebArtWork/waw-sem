@@ -1,0 +1,10 @@
+{
+    "name": "CNAME",
+    "crud": {
+        "update": {
+            "keys": ["name", "description", "data"]
+        },
+        "delete": [""]
+    },
+    "dependencies": {}
+}
