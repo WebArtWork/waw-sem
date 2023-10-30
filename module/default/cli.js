@@ -8,8 +8,15 @@ module.exports = async function (waw) {
 	const response = await fetch(
 		"https://webart.work/api/registry/waw/module/" + waw.name
 	);
+		let resp;
 	if (response.ok) {
-		const resp = await response.json();
+		resp = await response.json();
+	}
+	
+	if (response.ok && resp) {
+		fs.mkdirSync(waw.base, {
+			recursive: true
+		});
 
 		if (resp.repo) {
 			waw.fetch(waw.base, resp.repo, (err) => {}, resp.branch || 'master');
