@@ -1,6 +1,7 @@
 {
     "name": "CNAME",
     "crud": {
+        "unique": [ "url" ],
         "update": {
             "keys": ["name", "description", "data"]
         },
