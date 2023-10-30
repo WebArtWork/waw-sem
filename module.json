@@ -5,6 +5,7 @@
 	"runner": "runner.js",
 	"priority": 905,
 	"dependencies": {
+		"compression": "*",
 		"node-fetch": "2",
 		"mongoose": "*",
 		"connect-mongo": "*",
