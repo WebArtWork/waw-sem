@@ -109,6 +109,14 @@ module.exports = function(waw){
 	/*
 	*	Use
 	*/
+
+	/*
+ 	* Compressin
+  	*
+   		const compression = require('compression')
+     		app.use(compression());
+
+   
 		const use = [function(req, res, next){
 			req.url = req.originalUrl.toLowerCase().split('?')[0];
 			next();
