@@ -2,6 +2,7 @@ module.exports = async function (waw) {
 	const Schema = waw.mongoose.Schema({
 		name: String,
 		description: String,
+		url: { type: String, sparse: true, trim: true, unique: true },
 		data: {},
 		author: {
 			type: waw.mongoose.Schema.Types.ObjectId,
@@ -26,6 +27,8 @@ module.exports = async function (waw) {
 		this.description = obj.description;
 
 		this.data = obj.data;
+
+		this.url = obj.url;
 	};
 	return (waw.CNAME = waw.mongoose.model("CNAME", Schema));
 };
