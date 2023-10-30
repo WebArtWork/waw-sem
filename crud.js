@@ -282,38 +282,43 @@ module.exports = function (waw) {
 		 *	Unique
 		 */
 		var crud_unique = function (upd) {
+			if (typeof upd === 'string') {
+				upd = {
+					name: upd
+				}
+			}
 			let final_name = "_unique_" + crudName;
 			if (upd.name) final_name += "_" + upd.name;
 			router.post(
 				"/unique" + (upd.name || ""),
 				ensure("ensure" + final_name),
 				async (req, res) => {
-					let q = Schema.findOne(
-						(waw["query" + final_name] &&
-							waw["query" + final_name](req, res)) || {
-							_id: req.body._id,
-							moderators: req.user && req.user._id,
-						}
-					);
-					if (typeof waw["select" + final_name] == "function") {
-						q.select(waw["select" + final_name](req, res));
-					}
-					const doc = await q.exec();
-					let query =
-						waw["select" + final_name] &&
-						waw["select" + final_name](req, res, upd);
-					if (!query) {
-						query = {};
-						query[upd.key] = req.body[upd.key];
-					}
-					Schema.findOne(query, async (err, sdoc) => {
-						if (sdoc)
-							return res.json(waw.resp(doc[upd.key], 400, "Already Exists"));
-						doc[upd.key] = req.body[upd.key];
-						doc.markModified(upd.key);
-						await doc.save();
-						res.json(waw.resp(doc[upd.key], 200, "Successful"));
+					const document = await Schema.findOne((waw["query" + final_name] &&
+						waw["query" + final_name](req, res)) || {
+						_id: req.body._id,
+						moderators: req.user && req.user._id,
 					});
+
+					if (!document) {
+						return res.json(waw.resp(false, 401, "No found"));
+					}
+
+					const countQuery = {
+						_id: {
+							$ne: req.body._id
+						}
+					}
+					countQuery[upd.name] = req.body[upd.name];
+
+					if (await Schema.count(countQuery)) {
+						res.json(waw.resp(document[upd.name] || '', 200, "Successful"));
+					} else {
+						document[upd.name] = req.body[upd.name];
+
+						await document.save();
+
+						res.json(waw.resp(document[upd.name] || '', 200, "Successful"));
+					}
 				}
 			);
 		};
