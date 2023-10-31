@@ -5,7 +5,6 @@
 	"runner": "runner.js",
 	"priority": 905,
 	"dependencies": {
-		"compression": "*",
 		"node-fetch": "2",
 		"mongoose": "*",
 		"connect-mongo": "*",
@@ -17,6 +16,6 @@
 		"cookie-parser": "*",
 		"socket.io": "*",
 		"express": "*",
-    	"wjst": "*"
+    		"wjst": "*"
 	}
 }
