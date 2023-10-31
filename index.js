@@ -107,12 +107,6 @@ module.exports = function(waw){
 
 		waw.express = express;
 	/*
- 	* Compressin
-  	*/
-   		const compression = require('compression')
-     		app.use(compression());
-
-	/*
 	*	Use
 	*/
 
