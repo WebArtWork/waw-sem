@@ -4,23 +4,6 @@ module.exports = function (waw) {
 	const app = {};
 	const page = {};
 	const method = {};
-	const serveManagement = (options) => {
-		if (!options.serve) return;
-
-		if (typeof options.serve === 'string') {
-			options.serve = [{
-				path: options.serve
-			}];
-		}
-
-		if (typeof options.serve === 'object' && !Array.isArray(options.serve)) {
-			options.serve = [options.serve];
-		}
-
-		for (const serve of options.serve) {
-			waw.serve(serve.path, serve);
-		}
-	}
 	const appManagement = (options) => {
 		if (!options.domain || !options.app) return;
 
@@ -35,8 +18,13 @@ module.exports = function (waw) {
 			!options.template ||
 			typeof options.template !== 'object' ||
 			!options.template.path ||
+			!options.template.prefix ||
 			!options.template.pages
 		) return;
+
+		waw.serve(options.template.path, {
+			prefix: options.template.prefix
+		});
 
 		if (typeof options.template.pages === 'string') {
 			options.template.pages = options.template.pages.split(' ');
@@ -119,8 +107,6 @@ module.exports = function (waw) {
 	}
 	waw.api = (options) => {
 		options.domain = options.domain || '';
-
-		serveManagement(options);
 
 		appManagement(options);
 
