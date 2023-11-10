@@ -1,7 +1,7 @@
 {
 	"repo": "git@github.com:WebArtWork/waw-sem.git",
 	"name": "Sem",
-	"router": "index.js crud.js file.js serve.js wjst.js",
+	"router": "index.js crud.js file.js serve.js wjst.js api.js",
 	"runner": "runner.js",
 	"priority": 905,
 	"dependencies": {
@@ -16,6 +16,6 @@
 		"cookie-parser": "*",
 		"socket.io": "*",
 		"express": "*",
-    		"wjst": "*"
+    	"wjst": "*"
 	}
 }
