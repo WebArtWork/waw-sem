@@ -1,3 +1,4 @@
+const path = require('path');
 module.exports = function (waw) {
 	const app = {};
 	const page = {};
@@ -27,6 +28,44 @@ module.exports = function (waw) {
 		});
 
 		app[options.domain] = options.app;
+	}
+	const templateManagement = (options) => {
+		if (
+			!options.template ||
+			typeof options.template !== 'object' ||
+			!options.template.path ||
+			!options.template.pages
+		) return;
+
+		if (typeof options.template.pages === 'string') {
+			options.template.pages = options.template.pages.split(' ');
+		}
+
+		for (const page of options.template.pages) {
+			waw.build(options.template.path, page);
+
+			if (!page[options.domain + page]) {
+				page[options.domain + page] = (req, res) => {
+					res.send(
+						waw.render(
+							path.join(
+								template.path,
+								"dist",
+								page + ".html"
+							),
+							waw.readJson(
+								path.join(
+									template.path,
+									"pages",
+									page,
+									"page.json"
+								)
+							)
+						)
+					);
+				};
+			}
+		}
 	}
 	const pageManagement = (options) => {
 		if (!options.page) return;
@@ -78,6 +117,8 @@ module.exports = function (waw) {
 		appManagement(options);
 
 		pageManagement(options);
+
+		templateManagement(options);
 
 		httpManagement(options);
 	}
