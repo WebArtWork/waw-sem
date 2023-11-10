@@ -81,12 +81,15 @@ module.exports = function (waw) {
 			}];
 		}
 
-		if (typeof options.page === 'object' && !Array.isArray(options.page)) {
+		if (
+			typeof options.page === 'object' &&
+			!Array.isArray(options.page)
+		) {
 			options.page = [options.page];
 		}
 
 		for (const pageConfig of options.page) {
-			page[options.domain + (pageConfig.url || '')] = pageConfig.callback;
+			page[options.domain + (pageConfig.url || '/')] = pageConfig.callback;
 		}
 	}
 	const httpManagement = (options) => {
