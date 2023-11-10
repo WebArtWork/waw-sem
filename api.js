@@ -41,23 +41,27 @@ module.exports = function (waw) {
 			options.template.pages = options.template.pages.split(' ');
 		}
 
-		for (const page of options.template.pages) {
-			waw.build(options.template.path, page);
+		for (let pageName of options.template.pages) {
+			if (pageName === 'index') {
+				pageName = '/';
+			}
 
-			if (!page[options.domain + page]) {
-				page[options.domain + page] = (req, res) => {
+			waw.build(options.template.path, pageName);
+
+			if (!page[options.domain + pageName]) {
+				page[options.domain + pageName] = (req, res) => {
 					res.send(
 						waw.render(
 							path.join(
 								template.path,
 								"dist",
-								page + ".html"
+								pageName + ".html"
 							),
 							waw.readJson(
 								path.join(
 									template.path,
 									"pages",
-									page,
+									pageName,
 									"page.json"
 								)
 							)
@@ -80,8 +84,8 @@ module.exports = function (waw) {
 			options.page = [options.page];
 		}
 
-		for (const page of options.page) {
-			page[options.domain + (options.url || '')] = options.callback;
+		for (const pageConfig of options.page) {
+			page[options.domain + (pageConfig.url || '')] = pageConfig.callback;
 		}
 	}
 	const httpManagement = (options) => {
@@ -116,9 +120,9 @@ module.exports = function (waw) {
 
 		appManagement(options);
 
-		pageManagement(options);
-
 		templateManagement(options);
+
+		pageManagement(options);
 
 		httpManagement(options);
 	}
