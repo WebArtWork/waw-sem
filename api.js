@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 module.exports = function (waw) {
 	const app = {};
 	const page = {};
@@ -53,13 +54,13 @@ module.exports = function (waw) {
 					res.send(
 						waw.render(
 							path.join(
-								template.path,
+								options.template.path,
 								"dist",
 								pageName + ".html"
 							),
 							waw.readJson(
 								path.join(
-									template.path,
+									options.template.path,
 									"pages",
 									pageName,
 									"page.json"
