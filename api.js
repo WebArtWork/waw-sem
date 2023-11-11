@@ -38,6 +38,7 @@ module.exports = function (waw) {
 			waw.build(options.template.path, pageName);
 
 			if (!page[options.domain + pageName]) {
+				page[options.domain + '/' + pageName]
 				page[options.domain + pageName] = (req, res) => {
 					res.send(
 						waw.render(
