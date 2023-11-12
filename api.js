@@ -17,9 +17,9 @@ module.exports = function (waw) {
 
 		return { url, _url, router };
 	};
-	const doCheck = (_url, checks, handler) => {
+	const doCheck = (_url, checks, handler, req, res, next, domain) => {
 		for (const check of checks) {
-			if (_url.split("/").length === check._url.length) {
+			if (_url.length === check._url.length) {
 				let correct = true;
 
 				for (let i = 0; i < check._url.length; i++) {
@@ -34,11 +34,17 @@ module.exports = function (waw) {
 
 					for (let i = 0; i < check._url.length; i++) {
 						if (!check._url[i]) {
-							req.urlParams[check.url.split("/")[i]] = _url[i];
+							if (check.url.split("/")[i] || _url[i]) {
+								req.urlParams[check.url.split("/")[i].replace(':', '')] = _url[i];
+							}
 						}
 					}
 
-					handler[check.router + check.url](req, res, next);
+					if (handler[domain + check.router + check.url]) {
+						handler[domain + check.router + check.url](req, res, next);
+					} else if(handler[check.router + check.url]) {
+						handler[check.router + check.url](req, res, next);
+					}
 
 					return true;
 				}
@@ -155,7 +161,7 @@ module.exports = function (waw) {
 				? req.originalUrl.split("/")
 				: null;
 
-		if (_url && doCheck(_url, methodChecks, method)) {
+		if (_url && doCheck(_url, methodChecks, method, req, res, next, req.get("host"))) {
 			return;
 		}
 
@@ -169,7 +175,7 @@ module.exports = function (waw) {
 			return next();
 		}
 
-		if (_url && doCheck(_url, pageChecks, page)) {
+		if (_url && doCheck(_url, pageChecks, page, req, res, next, req.get("host"))) {
 			return;
 		}
 
