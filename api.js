@@ -37,9 +37,8 @@ module.exports = function (waw) {
 
 			waw.build(options.template.path, pageName);
 
-			if (!page[options.domain + pageName]) {
-				page[options.domain + '/' + pageName]
-				page[options.domain + pageName] = (req, res) => {
+			if (!page[options.domain + '/' + pageName]) {
+				page[options.domain + '/' + pageName] = (req, res) => {
 					res.send(
 						waw.render(
 							path.join(
@@ -62,23 +61,15 @@ module.exports = function (waw) {
 		}
 	}
 	const pageManagement = (options) => {
-		if (!options.page) return;
-
-		if (typeof options.page === 'function') {
-			options.page = [{
-				callback: options.page
-			}];
-		}
-
 		if (
 			typeof options.page === 'object' &&
 			!Array.isArray(options.page)
 		) {
-			options.page = [options.page];
-		}
-
-		for (const pageConfig of options.page) {
-			page[options.domain + (pageConfig.url || '/')] = pageConfig.callback;
+			for (const url in options.page) {
+				if (typeof options.page[url] === 'function') {
+					page[options.domain + url] = options.page[url];
+				}
+			}
 		}
 	}
 	const httpManagement = (options) => {
@@ -91,18 +82,15 @@ module.exports = function (waw) {
 		]) {
 			if (!options[method]) continue;
 
-			if (typeof options[method] === 'function') {
-				options[method] = [{
-					callback: options[method]
-				}];
-			}
-
-			if (typeof options[method] === 'object' && !Array.isArray(options[method])) {
-				options[method] = [options[method]];
-			}
-
-			for (const page of options[method]) {
-				method[options.domain + (options.router || '') + (options.url || '')] = options.callback;
+			if (
+				typeof options[method] === 'object' &&
+				!Array.isArray(options[method])
+			) {
+				for (const url in options[method]) {
+					if (typeof options[method][url] === 'function') {
+						method[options.domain + (options.router || '') + (url || '')] = options[method][url];
+					}
+				}
 			}
 		}
 	}
@@ -152,18 +140,15 @@ module.exports = function (waw) {
 	// 	router: '/api/product',
 	// 	domain: 'webart.work',
 	// 	app: 'path',
-	// 	page: ()=>{},
-	// 	serve: {
-	// 		path: 'path',
-	// 		prefix: '/inwawworld'
+	// 	page: {
+	// 		'/': () => {}
 	// 	},
 	// 	post: {
-	// 		url: '',
-	// 		callback: () => {}
+	// 		'/get': () => {}
 	// 	},
-	// 	get: ()=>{},
-	// 	put: ()=>{},
-	// 	patch: ()=>{},
-	// 	delete: ()=>{}
+	// 	get: {},
+	// 	put: {},
+	// 	patch: {},
+	// 	delete: {}
 	// });
 }
