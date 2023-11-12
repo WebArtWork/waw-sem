@@ -2,17 +2,51 @@ const path = require("path");
 const fs = require("fs");
 module.exports = function (waw) {
 	const app = {};
-	const page = {}, pageChecks = [];
-	const method = {}, methodChecks = [];
-	const customCheck = (url, router = '') => {
-		const _url = [], local_url = url.split('/');
+	const page = {},
+		pageChecks = [];
+	const method = {},
+		methodChecks = [];
+
+	const customCheck = (url, router = "") => {
+		const _url = [],
+			local_url = url.split("/");
 
 		for (let i = 0; i < local_url.length; i++) {
-			_url.push(local_url[i].startsWith(':') ? false : local_url[i]);
+			_url.push(local_url[i].startsWith(":") ? false : local_url[i]);
 		}
 
 		return { url, _url, router };
-	}
+	};
+	const doCheck = (_url, checks, handler) => {
+		for (const check of checks) {
+			if (_url.split("/").length === check._url.length) {
+				let correct = true;
+
+				for (let i = 0; i < check._url.length; i++) {
+					if (check._url[i] && check._url[i] !== _url[i]) {
+						correct = false;
+						break;
+					}
+				}
+
+				if (correct) {
+					req.urlParams = {};
+
+					for (let i = 0; i < check._url.length; i++) {
+						if (!check._url[i]) {
+							req.urlParams[check.url.split("/")[i]] = _url[i];
+						}
+					}
+
+					handler[check.router + check.url](req, res, next);
+
+					return true;
+				}
+			}
+		}
+
+		return false;
+	};
 	const appManagement = (options) => {
 		if (!options.domain || !options.app) return;
 
@@ -73,7 +107,7 @@ module.exports = function (waw) {
 	const pageManagement = (options) => {
 		if (typeof options.page === "object" && !Array.isArray(options.page)) {
 			for (const url in options.page) {
-				if (url.includes('/:')) {
+				if (url.includes("/:")) {
 					pageChecks.push(customCheck(url));
 				}
 
@@ -92,7 +126,7 @@ module.exports = function (waw) {
 				!Array.isArray(options[method])
 			) {
 				for (const url in options[method]) {
-					if (url.includes('/:')) {
+					if (url.includes("/:")) {
 						methodChecks.push(customCheck(url, router));
 					}
 
@@ -116,28 +150,16 @@ module.exports = function (waw) {
 	};
 
 	waw.use((req, res, next) => {
-		const _url = methodChecks.length || pageChecks.length ? req.originalUrl.split('/') : null;
+		const _url =
+			methodChecks.length || pageChecks.length
+				? req.originalUrl.split("/")
+				: null;
 
-		for (const check of methodChecks) {
-			if (_url.split('/').length === check._url.length) {
-				let correct = true;
-
-				for (let i = 0; i < check._url.length; i++) {
-					if (check._url[i] && check._url[i] !== _url[i]) {
-						correct = false;
-						break;
-					}
-				}
-
-				if (correct) {
-					return method[check.router + check.url](req, res, next);
-				}
-			}
+		if (doCheck(_url, methodChecks, method)) {
+			return;
 		}
 
-		if (
-			typeof method[req.get("host") + req.originalUrl] === "function"
-		) {
+		if (typeof method[req.get("host") + req.originalUrl] === "function") {
 			return method[req.get("host") + req.originalUrl](req, res, next);
 		} else if (typeof method[req.originalUrl] === "function") {
 			return method[req.originalUrl](req, res, next);
@@ -147,26 +169,11 @@ module.exports = function (waw) {
 			return next();
 		}
 
-		for (const check of pageChecks) {
-			if (_url.split('/').length === check._url.length) {
-				let correct = true;
-
-				for (let i = 0; i < check._url.length; i++) {
-					if (check._url[i] && check._url[i] !== _url[i]) {
-						correct = false;
-						break;
-					}
-				}
-
-				if (correct) {
-					return page[check.url](req, res, next);
-				}
-			}
+		if (doCheck(_url, pageChecks, page)) {
+			return;
 		}
 
-		if (
-			typeof page[req.get("host") + req.originalUrl] === "function"
-		) {
+		if (typeof page[req.get("host") + req.originalUrl] === "function") {
 			return page[req.get("host") + req.originalUrl](req, res, next);
 		} else if (typeof page[req.originalUrl] === "function") {
 			return page[req.originalUrl](req, res, next);
