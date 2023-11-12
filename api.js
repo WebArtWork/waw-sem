@@ -155,7 +155,7 @@ module.exports = function (waw) {
 				? req.originalUrl.split("/")
 				: null;
 
-		if (doCheck(_url, methodChecks, method)) {
+		if (_url && doCheck(_url, methodChecks, method)) {
 			return;
 		}
 
@@ -169,7 +169,7 @@ module.exports = function (waw) {
 			return next();
 		}
 
-		if (doCheck(_url, pageChecks, page)) {
+		if (_url && doCheck(_url, pageChecks, page)) {
 			return;
 		}
 
