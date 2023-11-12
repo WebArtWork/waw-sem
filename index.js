@@ -156,7 +156,7 @@ module.exports = function(waw){
 		}
 
 		waw.ensure = (req, res, next)=>{
-			if(req.user) next();
+			if(req.user) next(req, res);
 			else res.json(waw.resp(false));
 		}
 
