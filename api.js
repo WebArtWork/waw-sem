@@ -30,12 +30,12 @@ module.exports = function (waw) {
 				}
 
 				if (correct) {
-					req.urlParams = {};
+					req.params = {};
 
 					for (let i = 0; i < check._url.length; i++) {
 						if (!check._url[i]) {
 							if (check.url.split("/")[i] || _url[i]) {
-								req.urlParams[
+								req.params[
 									check.url.split("/")[i].replace(":", "")
 								] = _url[i];
 							}
