@@ -159,11 +159,9 @@ module.exports = function (waw) {
 		pageManagement(options);
 
 		httpManagement(options);
-		console.log(method);
 	};
 
 	waw.use((req, res, next) => {
-		console.log(req.originalUrl, method);
 
 		if (
 			methodChecks.length &&
