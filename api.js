@@ -9,7 +9,7 @@ module.exports = function (waw) {
 
 	const customCheck = (url, router = "") => {
 		const _url = [],
-			local_url = url.split("/");
+			local_url = ((router || '') + url).split("/");
 
 		for (let i = 0; i < local_url.length; i++) {
 			_url.push(local_url[i].startsWith(":") ? false : local_url[i]);
@@ -34,22 +34,22 @@ module.exports = function (waw) {
 
 					for (let i = 0; i < check._url.length; i++) {
 						if (!check._url[i]) {
-							if (check.url.split("/")[i] || _url[i]) {
+							if (((check.router || '') + check.url).split("/")[i] || _url[i]) {
 								req.params[
-									check.url.split("/")[i].replace(":", "")
+									((check.router || '') + check.url).split("/")[i].replace(":", "")
 								] = _url[i];
 							}
 						}
 					}
 
-					if (handler[domain + check.router + check.url]) {
-						handler[domain + check.router + check.url](
+					if (handler[req.method.toLowerCase() + domain + check.router + check.url]) {
+						handler[req.method.toLowerCase() + domain + check.router + check.url](
 							req,
 							res,
 							next
 						);
-					} else if (handler[check.router + check.url]) {
-						handler[check.router + check.url](req, res, next);
+					} else if (handler[req.method.toLowerCase() + check.router + check.url]) {
+						handler[req.method.toLowerCase() + check.router + check.url](req, res, next);
 					}
 
 					return true;
@@ -75,8 +75,9 @@ module.exports = function (waw) {
 			!options.template.path ||
 			!options.template.prefix ||
 			!options.template.pages
-		)
+		) {
 			return;
+		}
 
 		waw.serve(options.template.path, {
 			prefix: options.template.prefix,
@@ -87,11 +88,11 @@ module.exports = function (waw) {
 		}
 
 		for (let pageName of options.template.pages) {
+			waw.build(options.template.path, pageName);
+
 			if (pageName === "index") {
 				pageName = "/";
 			}
-
-			waw.build(options.template.path, pageName);
 
 			if (!page[options.domain + "/" + pageName]) {
 				page[options.domain + "/" + pageName] = (req, res) => {
@@ -130,7 +131,7 @@ module.exports = function (waw) {
 		}
 	};
 	const httpManagement = (options) => {
-		const router = options.domain + (options.router || "");
+		const router = (options.domain || "") + (options.router || "");
 
 		for (const methodName of ["get", "post", "put", "patch", "delete"]) {
 			if (
@@ -139,11 +140,11 @@ module.exports = function (waw) {
 			) {
 				for (const url in options[methodName]) {
 					if (url.includes("/:")) {
-						methodChecks.push(customCheck(url, router));
+						methodChecks.push(customCheck(url, options.router));
 					}
 
 					if (typeof options[methodName][url] === "function") {
-						method[router + url] = options[methodName][url];
+						method[methodName + router + url] = options[methodName][url];
 					}
 				}
 			}
@@ -162,7 +163,6 @@ module.exports = function (waw) {
 	};
 
 	waw.use((req, res, next) => {
-
 		if (
 			methodChecks.length &&
 			doCheck(
@@ -178,16 +178,28 @@ module.exports = function (waw) {
 			return;
 		}
 
-		if (typeof method[req.get("host") + req.originalUrl] === "function") {
-			return method[req.get("host") + req.originalUrl](req, res, next);
-		} else if (typeof method[req.originalUrl] === "function") {
-			return method[req.originalUrl](req, res, next);
+		if (
+			typeof method[
+				req.method.toLowerCase() + req.get("host") + req.originalUrl
+			] === "function"
+		) {
+			return method[
+				req.method.toLowerCase() + req.get("host") + req.originalUrl
+			](req, res, next);
+		} else if (
+			typeof method[req.method.toLowerCase() + req.originalUrl] ===
+			"function"
+		) {
+			return method[req.method.toLowerCase() + req.originalUrl](
+				req,
+				res,
+				next
+			);
 		}
 
 		if (req.originalUrl.startsWith("/api/")) {
 			return next();
 		}
-
 		if (
 			pageChecks.length &&
 			doCheck(
