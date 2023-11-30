@@ -50,6 +50,14 @@ module.exports = function (waw) {
 						);
 					} else if (handler[req.method.toLowerCase() + check.router + check.url]) {
 						handler[req.method.toLowerCase() + check.router + check.url](req, res, next);
+					} else if (handler[domain + check.router + check.url]) {
+						handler[domain + check.router + check.url](
+							req,
+							res,
+							next
+						);
+					} else if (handler[check.router + check.url]) {
+						handler[check.router + check.url](req, res, next);
 					}
 
 					return true;
