@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-module.exports = function (waw) {
+module.exports = async function (waw) {
 	const app = {};
 	const page = {},
 		pageChecks = [];
@@ -170,6 +170,8 @@ module.exports = function (waw) {
 		httpManagement(options);
 	};
 
+	await waw.wait(500);
+	
 	waw.use((req, res, next) => {
 		if (
 			methodChecks.length &&
