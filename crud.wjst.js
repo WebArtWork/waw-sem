@@ -28,7 +28,6 @@ class Crud {
 	getName = '';
 	async page(page, name = '') {
 		try {
-			page++;
 			const response = await Http.get(`${this.api}/get${name || this.getName}?skip=${page * this.perPage}&limit=${this.perPage}`);
 			return response;
 		} catch (error) {
