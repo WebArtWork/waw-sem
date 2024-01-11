@@ -236,18 +236,19 @@ module.exports = async function (waw) {
 		} else if (typeof page["*"] === "function") {
 			return page["*"](req, res, next);
 		}
-
 		if (app[req.get("host")]) {
 			if (
-				fs.existsSync(path.join(app[req.get("host")], req.originalUrl))
+				req.originalUrl !== '/' && fs.existsSync(path.join(app[req.get("host")], req.originalUrl))
 			) {
 				res.sendFile(path.join(app[req.get("host")], req.originalUrl));
 			} else {
 				res.sendFile(path.join(app[req.get("host")], "index.html"));
 			}
+			
 		} else {
 			next();
 		}
+		
 	});
 
 	/* Sample */
