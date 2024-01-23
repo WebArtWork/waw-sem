@@ -246,20 +246,18 @@ module.exports = async function (waw) {
 			return page[req.originalUrl](req, res, next);
 		}
 
-		if (typeof page[host + "*"] === "function") {
-			return page[host + "*"](req, res, next);
+		if (app[req.get('host')]) {
+			if (
+				req.originalUrl !== '/' && fs.existsSync(path.join(app[req.get('host')], req.originalUrl))
+			) {
+				res.sendFile(path.join(app[req.get('host')], req.originalUrl));
+			} else {
+				res.sendFile(path.join(app[req.get('host')], "index.html"));
+			}
+		} else if (typeof page[host + "*"] === "function") {
+				return page[host + "*"](req, res, next);
 		} else if (typeof page["*"] === "function") {
 			return page["*"](req, res, next);
-		}
-		if (app[host]) {
-			if (
-				req.originalUrl !== '/' && fs.existsSync(path.join(app[host], req.originalUrl))
-			) {
-				res.sendFile(path.join(app[host], req.originalUrl));
-			} else {
-				res.sendFile(path.join(app[host], "index.html"));
-			}
-
 		} else {
 			next();
 		}
