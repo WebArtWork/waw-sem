@@ -178,7 +178,7 @@ module.exports = async function (waw) {
 
 	const getHost = (host) => {
 		for (const domain of subdomains) {
-			if (domain.endsWith(host)) {
+			if (host.endsWith(domain)) {
 				return domain;
 			}
 		}
@@ -187,7 +187,6 @@ module.exports = async function (waw) {
 
 	waw.use((req, res, next) => {
 		const host = getHost(req.get("host"));
-
 		if (
 			methodChecks.length &&
 			doCheck(
@@ -225,6 +224,7 @@ module.exports = async function (waw) {
 		if (req.originalUrl.startsWith("/api/")) {
 			return next();
 		}
+
 		if (
 			pageChecks.length &&
 			doCheck(
