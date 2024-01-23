@@ -121,7 +121,7 @@ module.exports = function (waw) {
 			function (req, res) {
 				const doc = new Schema();
 
-				const final_name = "_get_" + crudName;
+				const final_name = "_create_" + crudName;
 
 				if (
 					typeof waw["query" + final_name] !== "function" &&
