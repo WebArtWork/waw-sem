@@ -178,7 +178,7 @@ module.exports = async function (waw) {
 
 	const getHost = (host) => {
 		for (const domain of subdomains) {
-			if (host.endsWith(domain)) {
+			if (host && host.endsWith(domain)) {
 				return domain;
 			}
 		}
