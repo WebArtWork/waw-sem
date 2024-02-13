@@ -1,146 +1,58 @@
-class Dom {
-	template(elementId, variables = {}) {
-		const sourceElement = document.getElementById("template-" + elementId);
+import Http from '/api/wjst/http';
 
-		if (sourceElement) {
-			let code = sourceElement.innerHTML;
+class Crud {
+	api = '';
 
-			for (const variable in variables) {
-				code = code.split("{" + variable + "}").join(variables[variable]);
-			}
+	constructor(apiExtended) {
+		this.api = apiExtended;
+	}
 
-			return code;
-		} else {
-			console.error(`Element with ID '${elementId}' not found.`);
+	async create(data) {
+		try {
+			const response = await Http.post(`${this.api}/create`, data);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to create: ${error.message}`);
 		}
 	}
 
-	replace(elementId, childHtml) {
-		const parentElement = document.getElementById(elementId);
-
-		if (parentElement) {
-			parentElement.innerHTML = childHtml;
-		} else {
-			console.error(`Element with ID '${elementId}' not found.`);
+	async get() {
+		try {
+			const response = await Http.get(`${this.api}/get`);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to get: ${error.message}`);
+		}
+	}
+	perPage = 20;
+	getName = '';
+	async page(page, name = '') {
+		try {
+			 page--;
+			const response = await Http.get(`${this.api}/get${name || this.getName}?skip=${page * this.perPage}&limit=${this.perPage}`);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to get: ${error.message}`);
 		}
 	}
 
-	add(elementId, childHtml) {
-		const parentElement = document.getElementById(elementId);
-
-		if (parentElement) {
-			parentElement.innerHTML += childHtml;
-		} else {
-		console.error(`Element with ID '${elementId}' not found.`);
+	async update(data) {
+		try {
+			const response = await Http.post(`${this.api}/update`, data);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to update: ${error.message}`);
 		}
 	}
 
-	addToBody(childHtml) {
-		const childElement = document.createElement("div");
-
-		childElement.innerHTML = childHtml;
-
-		document.body.appendChild(childElement);
-	}
-
-	clear(elementId) {
-		const element = document.getElementById(elementId);
-
-		if (element) {
-			element.innerHTML = "";
-		} else {
-			console.error(`Element with ID ${elementId} not found.`);
+	async delete(data) {
+		try {
+			const response = await Http.post(`${this.api}/delete`, data);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to delete: ${error.message}`);
 		}
-	}
-
-	remove(elementId) {
-		const element = document.getElementById(elementId);
-
-		if (element) {
-			element.remove();
-		} else {
-			console.error(`Element with ID ${elementId} not found.`);
-		}
-	}
-
-	click(elementId, callback) {
-		const element = document.getElementById(elementId);
-
-		if (!element) {
-			console.error(`Element with ID '${elementId}' not found.`);
-			return;
-		}
-
-		// Attach the click event listener
-		element.addEventListener("click", callback);
-	}
-
-	value(elementId) {
-		const element = document.getElementById(elementId);
-
-		if (element) {
-			return element.value;
-		} else {
-			console.error(`Element with ID '${elementId}' not found.`);
-			return "";
-		}
-	}
-
-	enter(elementId, callback) {
-		const inputElement = document.getElementById(elementId);
-
-		if (!inputElement) {
-			console.error(`Element with ID '${elementId}' not found.`);
-			return;
-		}
-
-		inputElement.addEventListener("keypress", (event) => {
-			if (event.key === "Enter") {
-				callback(event);
-			}
-		});
-	}
-
-	keypress(elementId, callback) {
-		const inputElement = document.getElementById(elementId);
-
-		if (!inputElement) {
-			console.error(`Element with ID '${elementId}' not found.`);
-			return;
-		}
-
-		inputElement.addEventListener("keypress", (event) => {
-			callback(event);
-		});
-	}
-
-	exists(elementId) {
-		return !!document.getElementById(elementId);
-	}
-
-	attr(elementId, attr) {
-		const inputElement = document.getElementById(elementId);
-
-		if (!inputElement) {
-			console.error(`Element with ID '${elementId}' not found.`);
-			return;
-		}
-
-		return inputElement.getAttribute(attr);
-	}
-
-	submit(id, callback) {
-		document.getElementById(id).addEventListener('submit', function (event) {
-			event.preventDefault();
-			const submition = {};
-			for (const input of event.target.elements) {
-				if (input.name && input.value) {
-					submition[input.name] = input.value;
-				}
-			}
-			callback(submition);
-		});
 	}
 }
 
-export default new Dom();
+export default Crud;
