@@ -263,7 +263,7 @@ module.exports = async function (waw) {
 				'page is not configured, url: ',
 				req.originalUrl,
 				' and host: ',
-				req.get('host'), method, page
+				req.get('host')
 			);
 			next();
 		}
