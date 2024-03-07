@@ -259,12 +259,14 @@ module.exports = async function (waw) {
 		} else if (typeof page["*"] === "function") {
 			return page["*"](req, res, next);
 		} else {
-			console.log(
-				'page is not configured, url: ',
-				req.originalUrl,
-				' and host: ',
-				req.get('host')
-			);
+			if (req.get('host') && !req.get('host').includes('localhost')) {
+				console.log(
+					'page is not configured, url: ',
+					req.originalUrl,
+					' and host: ',
+					req.get('host')
+				);	
+			}
 			next();
 		}
 
