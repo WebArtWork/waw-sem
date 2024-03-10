@@ -10,7 +10,7 @@ module.exports = async function (waw) {
 
 	const customCheck = (url, router = "") => {
 		const _url = [],
-			local_url = ((router || '') + url).split("/");
+			local_url = ((router || "") + url).split("/");
 
 		for (let i = 0; i < local_url.length; i++) {
 			_url.push(local_url[i].startsWith(":") ? false : local_url[i]);
@@ -35,22 +35,43 @@ module.exports = async function (waw) {
 
 					for (let i = 0; i < check._url.length; i++) {
 						if (!check._url[i]) {
-							if (((check.router || '') + check.url).split("/")[i] || _url[i]) {
+							if (
+								((check.router || "") + check.url).split("/")[
+									i
+								] ||
+								_url[i]
+							) {
 								req.params[
-									((check.router || '') + check.url).split("/")[i].replace(":", "")
+									((check.router || "") + check.url)
+										.split("/")
+										[i].replace(":", "")
 								] = _url[i];
 							}
 						}
 					}
 
-					if (handler[req.method.toLowerCase() + domain + check.router + check.url]) {
-						handler[req.method.toLowerCase() + domain + check.router + check.url](
-							req,
-							res,
-							next
-						);
-					} else if (handler[req.method.toLowerCase() + check.router + check.url]) {
-						handler[req.method.toLowerCase() + check.router + check.url](req, res, next);
+					if (
+						handler[
+							req.method.toLowerCase() +
+								domain +
+								check.router +
+								check.url
+						]
+					) {
+						handler[
+							req.method.toLowerCase() +
+								domain +
+								check.router +
+								check.url
+						](req, res, next);
+					} else if (
+						handler[
+							req.method.toLowerCase() + check.router + check.url
+						]
+					) {
+						handler[
+							req.method.toLowerCase() + check.router + check.url
+						](req, res, next);
 					} else if (handler[domain + check.router + check.url]) {
 						handler[domain + check.router + check.url](
 							req,
@@ -68,6 +89,7 @@ module.exports = async function (waw) {
 
 		return false;
 	};
+
 	const appManagement = (options) => {
 		if (!options.domain || !options.app) return;
 
@@ -77,6 +99,7 @@ module.exports = async function (waw) {
 
 		app[options.domain] = options.app;
 	};
+
 	const templateManagement = (options) => {
 		if (
 			!options.template ||
@@ -126,6 +149,7 @@ module.exports = async function (waw) {
 			}
 		}
 	};
+
 	const pageManagement = (options) => {
 		if (typeof options.page === "object" && !Array.isArray(options.page)) {
 			for (const url in options.page) {
@@ -139,6 +163,14 @@ module.exports = async function (waw) {
 			}
 		}
 	};
+	waw.apiCleanPage = (domain) => {
+		for (const key in page) {
+			if (key.startsWith(domain)) {
+				delete page[key];
+			}
+		}
+	}
+
 	const httpManagement = (options) => {
 		const router = (options.domain || "") + (options.router || "");
 
@@ -153,12 +185,14 @@ module.exports = async function (waw) {
 					}
 
 					if (typeof options[methodName][url] === "function") {
-						method[methodName + router + url] = options[methodName][url];
+						method[methodName + router + url] =
+							options[methodName][url];
 					}
 				}
 			}
 		}
 	};
+
 	waw.api = (options) => {
 		options.domain = options.domain || "";
 		if (options.subdomain && !subdomains.includes(options.domain)) {
@@ -183,7 +217,7 @@ module.exports = async function (waw) {
 			}
 		}
 		return host;
-	}
+	};
 
 	waw.use((req, res, next) => {
 		const host = getHost(req.get("host"));
@@ -203,13 +237,14 @@ module.exports = async function (waw) {
 		}
 
 		if (
-			typeof method[
-				req.method.toLowerCase() + host + req.originalUrl
-			] === "function"
+			typeof method[req.method.toLowerCase() + host + req.originalUrl] ===
+			"function"
 		) {
-			return method[
-				req.method.toLowerCase() + host + req.originalUrl
-			](req, res, next);
+			return method[req.method.toLowerCase() + host + req.originalUrl](
+				req,
+				res,
+				next
+			);
 		} else if (
 			typeof method[req.method.toLowerCase() + req.originalUrl] ===
 			"function"
@@ -246,30 +281,30 @@ module.exports = async function (waw) {
 			return page[req.originalUrl](req, res, next);
 		}
 
-		if (app[req.get('host')]) {
+		if (app[req.get("host")]) {
 			if (
-				req.originalUrl !== '/' && fs.existsSync(path.join(app[req.get('host')], req.originalUrl))
+				req.originalUrl !== "/" &&
+				fs.existsSync(path.join(app[req.get("host")], req.originalUrl))
 			) {
-				res.sendFile(path.join(app[req.get('host')], req.originalUrl));
+				res.sendFile(path.join(app[req.get("host")], req.originalUrl));
 			} else {
-				res.sendFile(path.join(app[req.get('host')], "index.html"));
+				res.sendFile(path.join(app[req.get("host")], "index.html"));
 			}
 		} else if (typeof page[host + "*"] === "function") {
-				return page[host + "*"](req, res, next);
+			return page[host + "*"](req, res, next);
 		} else if (typeof page["*"] === "function") {
 			return page["*"](req, res, next);
 		} else {
-			if (req.get('host') && !req.get('host').includes('localhost')) {
+			if (req.get("host") && !req.get("host").includes("localhost")) {
 				console.log(
-					'page is not configured, url: ',
+					"page is not configured, url: ",
 					req.originalUrl,
-					' and host: ',
-					req.get('host')
-				);	
+					" and host: ",
+					req.get("host")
+				);
 			}
 			next();
 		}
-
 	});
 
 	/* Sample */
