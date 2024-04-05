@@ -1,7 +1,6 @@
 const fs = require('fs');
 const wjst = require('wjst');
 const path = require('path');
-const { log } = require('console');
 module.exports = async function (waw) {
 	// TODO remove on version 23.3.X
 	if (typeof waw.module_each_file !== 'function') {
@@ -91,21 +90,29 @@ module.exports = async function (waw) {
 		let timestamp = _id.toString().substring(0, 8);
 		return new Date(parseInt(timestamp, 16) * 1000);
 	});
+	const templateJsonLocs = {};
 	waw.wjst.setFilter('c', function (file, obj) {
-		file = file.toString();
-		if (fs.existsSync(process.cwd() + file + '/index.html')) {
-			return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj || {});
-		}
-		file = path.normalize(file);
-		file = file.split(path.sep);
+		file = file.split('/');
 		file.shift();
-		file.shift();
+		const prefix = '/' + file.shift();
 		file.unshift('');
-		file = file.join(path.sep);
-		if (fs.existsSync(process.cwd() + file + path.sep + 'index.html')) {
-			return waw.wjst.compileFile(process.cwd() + file + '/index.html')(obj || {});
+		file = file.join('/');
+		if (!templateJsonLocs[prefix]) {
+			const files = waw.getFilesRecursively(process.cwd(), {
+				end: 'template.json'
+			});
+			for (const file of files) {
+				const json = waw.readJson(file);
+				if (json.prefix) {
+					templateJsonLocs[json.prefix] = path.dirname(file);
+				}
+			}
 		}
-		return 'No component found for: ' + file;
+		if (fs.existsSync(templateJsonLocs[prefix] + file + path.sep + 'index.html')) {
+			return waw.wjst.compileFile(templateJsonLocs[prefix] + file + '/index.html')(obj || {});
+		} else {
+			return 'No component found for: ' + file;
+		}
 	});
 
 	waw.wjst.setFilter('resized', (src, size) => {
