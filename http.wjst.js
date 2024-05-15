@@ -50,7 +50,7 @@ class Http {
         localStorage.setItem('httpHeaders', JSON.stringify(this.headers));
     }
 
-    private loadHeadersFromLocalStorage() {
+    loadHeadersFromLocalStorage() {
         const storedHeaders = localStorage.getItem('httpHeaders');
         return storedHeaders ? JSON.parse(storedHeaders) : {};
     }
