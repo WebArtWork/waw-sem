@@ -90,6 +90,20 @@ module.exports = async function (waw) {
 		let timestamp = _id.toString().substring(0, 8);
 		return new Date(parseInt(timestamp, 16) * 1000);
 	});
+	waw.wjst.setFilter('map', (array, func) => {
+		if (Array.isArray(array) && typeof func === 'function') {
+			return array.map(func);
+		} else {
+			return array;
+		}
+	});
+	waw.wjst.setFilter('flat', (array) => {
+		if (Array.isArray(array)) {
+			return array.flat();
+		} else {
+			return array;
+		}
+	});
 	const templateJsonLocs = {};
 	waw.wjst.setFilter('c', function (file, obj) {
 		file = file.split('/');
