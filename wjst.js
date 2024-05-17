@@ -90,9 +90,9 @@ module.exports = async function (waw) {
 		let timestamp = _id.toString().substring(0, 8);
 		return new Date(parseInt(timestamp, 16) * 1000);
 	});
-	waw.wjst.setFilter('map', (array, func) => {
-		if (Array.isArray(array) && typeof func === 'function') {
-			return array.map(func);
+	waw.wjst.setFilter('map', (array, funcEval) => {
+		if (Array.isArray(array) && typeof eval(funcEval) === 'function') {
+			return array.map(eval(funcEval));
 		} else {
 			return array;
 		}
