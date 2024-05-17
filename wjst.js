@@ -92,14 +92,16 @@ module.exports = async function (waw) {
 	});
 	waw.wjst.setFilter('map', (array, funcEval) => {
 		if (Array.isArray(array) && typeof eval(funcEval) === 'function') {
-			return array.map(eval(funcEval));
+			array = array.map(eval(funcEval));
+			return array.filter(item => item !== undefined);
 		} else {
 			return array;
 		}
 	});
 	waw.wjst.setFilter('flat', (array) => {
 		if (Array.isArray(array)) {
-			return array.flat();
+			array = array.flat();
+			return array.filter(item => item !== undefined);
 		} else {
 			return array;
 		}
