@@ -78,7 +78,7 @@ module.exports = async (waw) => {
 	}
 
 	waw.use((req, res, next) => {
-		if (req.url.indexOf("/api/") == 0) {
+		if (req.originalUrl.startsWith('/api/')) {
 			return next();
 		}
 
