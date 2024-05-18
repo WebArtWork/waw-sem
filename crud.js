@@ -77,11 +77,14 @@ module.exports = function (waw) {
 		};
 	};
 	const add_crud = async function (crud, part, unique = true) {
-		await waw.wait(2000);
+		await waw.wait(1000);
 		const crudName = crud.name.toString().toLowerCase();
-		const crudCapitalName = crudName.charAt(0).toUpperCase() + crudName.substr(1).toLowerCase();
+		const crudCapitalName =
+			crudName.charAt(0).toUpperCase() + crudName.substr(1).toLowerCase();
 
-		const schemaPath = unique ? part.__root + "/schema.js" : part.__root + "/schema_" + crudName + ".js";
+		const schemaPath = unique
+			? part.__root + "/schema.js"
+			: part.__root + "/schema_" + crudName + ".js";
 
 		// if (!waw[crudCapitalName] && !fs.existsSync(schemaPath)) {
 		// 	let data = fs.readFileSync(__dirname + "/schema.js", "utf8");
@@ -149,6 +152,11 @@ module.exports = function (waw) {
 		 *	Read
 		 */
 		const get_unique = {};
+		const _sort = (params) => {
+			const sort = {};
+			sort[params.sort] = params.sortOrder ? Number(params.sortOrder) : 1;
+			return sort;
+		};
 		const crud_get = function (name) {
 			if (get_unique[name]) return;
 			get_unique[name] = true;
@@ -158,29 +166,36 @@ module.exports = function (waw) {
 				"/get" + name,
 				ensure("ensure" + final_name),
 				async (req, res) => {
+					console.log(req.params);
+					console.log(req.query);
 					let query = (waw["query" + final_name] &&
 						waw["query" + final_name](req, res)) || {
 						moderators: req.user && req.user._id,
 					};
 					query = Schema.find(query);
-					let sort =
-						(waw["sort" + final_name] && waw["sort" + final_name](req, res)) ||
-						false;
+
+					const sort =
+						typeof waw["sort" + final_name] === "function"
+							? waw["sort" + final_name](req, res)
+							: req.params.sort
+							? _sort(req.params)
+							: false;
 					if (sort) {
 						query.sort(sort);
 					}
-					let skip =
-						(waw["skip" + final_name] && waw["skip" + final_name](req, res)) ||
-						false;
-					if (req.query.skip || skip) {
-						query.skip(Number(req.query.skip || skip));
+					const skip =
+						typeof waw["skip" + final_name] === "function"
+							? waw["skip" + final_name](req, res)
+							: req.params.skip || false;
+					if (skip) {
+						query.skip(Number(skip));
 					}
-					let limit =
-						(waw["limit" + final_name] &&
-							waw["limit" + final_name](req, res)) ||
-						false;
-					if (req.query.limit || limit) {
-						query.limit(Number(req.query.limit || limit));
+					const limit =
+						typeof waw["limit" + final_name] === "function"
+							? waw["limit" + final_name](req, res)
+							: req.params.limit || false;
+					if (limit) {
+						query.limit(Number(limit));
 					}
 					let select =
 						(waw["select" + final_name] &&
@@ -282,10 +297,10 @@ module.exports = function (waw) {
 		 *	Unique
 		 */
 		var crud_unique = function (upd) {
-			if (typeof upd === 'string') {
+			if (typeof upd === "string") {
 				upd = {
-					name: upd
-				}
+					name: upd,
+				};
 			}
 			let final_name = "_unique_" + crudName;
 			if (upd.name) final_name += "_" + upd.name;
@@ -293,11 +308,13 @@ module.exports = function (waw) {
 				"/unique" + (upd.name || ""),
 				ensure("ensure" + final_name),
 				async (req, res) => {
-					const document = await Schema.findOne((waw["query" + final_name] &&
-						waw["query" + final_name](req, res)) || {
-						_id: req.body._id,
-						moderators: req.user && req.user._id,
-					});
+					const document = await Schema.findOne(
+						(waw["query" + final_name] &&
+							waw["query" + final_name](req, res)) || {
+							_id: req.body._id,
+							moderators: req.user && req.user._id,
+						}
+					);
 
 					if (!document) {
 						return res.json(waw.resp(false, 401, "No found"));
@@ -305,19 +322,31 @@ module.exports = function (waw) {
 
 					const countQuery = {
 						_id: {
-							$ne: req.body._id
-						}
-					}
+							$ne: req.body._id,
+						},
+					};
 					countQuery[upd.name] = req.body[upd.name];
 
 					if (await Schema.count(countQuery)) {
-						res.json(waw.resp(document[upd.name] || '', 200, "Successful"));
+						res.json(
+							waw.resp(
+								document[upd.name] || "",
+								200,
+								"Successful"
+							)
+						);
 					} else {
 						document[upd.name] = req.body[upd.name];
 
 						await document.save();
 
-						res.json(waw.resp(document[upd.name] || '', 200, "Successful"));
+						res.json(
+							waw.resp(
+								document[upd.name] || "",
+								200,
+								"Successful"
+							)
+						);
 					}
 				}
 			);
@@ -385,8 +414,8 @@ module.exports = function (waw) {
 					} else {
 						console.log(
 							"CRUD on module " +
-							waw.modules[i].name +
-							" is not used because there is no name."
+								waw.modules[i].name +
+								" is not used because there is no name."
 						);
 					}
 				}
