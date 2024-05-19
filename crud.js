@@ -166,8 +166,6 @@ module.exports = function (waw) {
 				"/get" + name,
 				ensure("ensure" + final_name),
 				async (req, res) => {
-					console.log(req.params);
-					console.log(req.query);
 					let query = (waw["query" + final_name] &&
 						waw["query" + final_name](req, res)) || {
 						moderators: req.user && req.user._id,
@@ -177,8 +175,8 @@ module.exports = function (waw) {
 					const sort =
 						typeof waw["sort" + final_name] === "function"
 							? waw["sort" + final_name](req, res)
-							: req.params.sort
-							? _sort(req.params)
+							: req.query.sort
+							? _sort(req.query)
 							: false;
 					if (sort) {
 						query.sort(sort);
@@ -186,14 +184,14 @@ module.exports = function (waw) {
 					const skip =
 						typeof waw["skip" + final_name] === "function"
 							? waw["skip" + final_name](req, res)
-							: req.params.skip || false;
+							: req.query.skip || false;
 					if (skip) {
 						query.skip(Number(skip));
 					}
 					const limit =
 						typeof waw["limit" + final_name] === "function"
 							? waw["limit" + final_name](req, res)
-							: req.params.limit || false;
+							: req.query.limit || false;
 					if (limit) {
 						query.limit(Number(limit));
 					}
