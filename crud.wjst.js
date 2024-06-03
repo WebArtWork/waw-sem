@@ -28,7 +28,7 @@ class Crud {
 	getName = '';
 	async page(page, name = '') {
 		try {
-			 page--;
+			page--;
 			const response = await Http.get(`${this.api}/get${name || this.getName}?skip=${page * this.perPage}&limit=${this.perPage}`);
 			return response;
 		} catch (error) {
@@ -42,6 +42,15 @@ class Crud {
 			return response;
 		} catch (error) {
 			throw new Error(`Failed to update: ${error.message}`);
+		}
+	}
+
+	async fetch(options) {
+		try {
+			const response = await Http.get(`${this.api}/fetch${options.name || ''}`);
+			return response;
+		} catch (error) {
+			throw new Error(`Failed to fetch: ${error.message}`);
 		}
 	}
 
