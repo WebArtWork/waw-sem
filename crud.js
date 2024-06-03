@@ -245,7 +245,7 @@ module.exports = function (waw) {
 							waw["populate" + final_name](req, res)) ||
 						false;
 					if (populate) {
-						query.populate(populate);
+						q.populate(populate);
 					}
 					const doc = await q.exec();
 					res.json(waw.resp(doc, 200, "Successful"));
