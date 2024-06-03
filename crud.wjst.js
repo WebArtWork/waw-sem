@@ -47,7 +47,7 @@ class Crud {
 
 	async fetch(options) {
 		try {
-			const response = await Http.get(`${this.api}/fetch${options.name || ''}`);
+			const response = await Http.post(`${this.api}/fetch${options.name || ''}`);
 			return response;
 		} catch (error) {
 			throw new Error(`Failed to fetch: ${error.message}`);
