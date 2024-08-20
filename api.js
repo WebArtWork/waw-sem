@@ -37,14 +37,14 @@ module.exports = async function (waw) {
 						if (!check._url[i]) {
 							if (
 								((check.router || "") + check.url).split("/")[
-									i
+								i
 								] ||
 								_url[i]
 							) {
 								req.params[
 									((check.router || "") + check.url)
 										.split("/")
-										[i].replace(":", "")
+									[i].replace(":", "")
 								] = _url[i];
 							}
 						}
@@ -52,21 +52,21 @@ module.exports = async function (waw) {
 
 					if (
 						handler[
-							req.method.toLowerCase() +
-								domain +
-								check.router +
-								check.url
+						req.method.toLowerCase() +
+						domain +
+						check.router +
+						check.url
 						]
 					) {
 						handler[
 							req.method.toLowerCase() +
-								domain +
-								check.router +
-								check.url
+							domain +
+							check.router +
+							check.url
 						](req, res, next);
 					} else if (
 						handler[
-							req.method.toLowerCase() + check.router + check.url
+						req.method.toLowerCase() + check.router + check.url
 						]
 					) {
 						handler[
@@ -275,10 +275,11 @@ module.exports = async function (waw) {
 			return;
 		}
 
-		if (typeof page[host + req.originalUrl] === "function") {
-			return page[host + req.originalUrl](req, res, next);
-		} else if (typeof page[req.originalUrl] === "function") {
-			return page[req.originalUrl](req, res, next);
+		const url = req.originalUrl.split('?')[0];
+		if (typeof page[host + url] === "function") {
+			return page[host + url](req, res, next);
+		} else if (typeof page[url] === "function") {
+			return page[url](req, res, next);
 		}
 
 		if (app[req.get("host")]) {
