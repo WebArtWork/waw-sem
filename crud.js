@@ -278,6 +278,7 @@ module.exports = function (waw) {
 						q.select(waw["select" + final_name](req, res));
 					}
 					const doc = await q.exec();
+					console.log(doc);
 					for (var i = 0; i < upd.keys.length; i++) {
 						doc[upd.keys[i]] = req.body[upd.keys[i]];
 						doc.markModified(upd.keys[i]);
