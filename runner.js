@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const defaults = {
 	module: {
 		default: __dirname + '/module/default'
