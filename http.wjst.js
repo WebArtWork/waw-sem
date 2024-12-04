@@ -1,6 +1,7 @@
 class Http {
      static instance = null;
     headers = this.loadHeadersFromLocalStorage();
+     domain = ''
 
     constructor() {
         if (Http.instance) {
@@ -11,7 +12,7 @@ class Http {
 
     async get(url) {
         try {
-            const response = await fetch(url, {
+            const response = await fetch(this.domain + url, {
                 headers: this.headers
             });
             if (!response.ok) {
@@ -25,7 +26,7 @@ class Http {
 
     async post(url, data) {
         try {
-            const response = await fetch(url, {
+            const response = await fetch(this.domain + url, {
                 method: 'POST',
                 headers: {
                     ...this.headers,
