@@ -1,5 +1,13 @@
 class Http {
+     static instance = null;
     headers = this.loadHeadersFromLocalStorage();
+
+    constructor() {
+        if (Http.instance) {
+            return Http.instance;
+        }
+        Http.instance = this;
+    }
 
     async get(url) {
         try {
