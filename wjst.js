@@ -106,8 +106,15 @@ module.exports = async function (waw) {
       return array;
     }
   });
+  const { marked } = require("marked");
   waw.wjst.setFilter("marked", (markdown) => {
-    return marked(markdown);
+    if (!markdown) {
+      return "";
+    } else if (fs.existsSync(process.cwd() + markdown)) {
+      return marked(fs.readFileSync(process.cwd() + markdown, "utf-8"));
+    } else {
+      return marked(markdown);
+    }
   });
   const templateJsonLocs = {};
   waw.wjst.setFilter("c", function (file, obj) {
