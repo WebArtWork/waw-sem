@@ -16,7 +16,7 @@
     "cookie-parser": "*",
     "socket.io": "*",
     "express": "*",
-    "marked": "*",
+    "marked": "16.1.1",
     "wjst": "*"
   }
 }
