@@ -7,7 +7,7 @@
   "dependencies": {
     "node-fetch": "2",
     "mongoose": "*",
-    "connect-mongo": "*",
+    "connect-mongo": "3.2.0",
     "body-parser": "*",
     "formidable": "*",
     "method-override": "*",
