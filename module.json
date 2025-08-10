@@ -7,7 +7,7 @@
   "dependencies": {
     "node-fetch": "2",
     "mongoose": "*",
-    "connect-mongo": "*",
+    "connect-mongo": "4.6.0",
     "body-parser": "*",
     "formidable": "*",
     "method-override": "*",
@@ -16,7 +16,7 @@
     "cookie-parser": "*",
     "socket.io": "*",
     "express": "*",
-    "marked": "*",
+    "marked": "16.1.1",
     "wjst": "*"
   }
 }
