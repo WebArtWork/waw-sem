@@ -125,7 +125,7 @@ module.exports = async function (waw) {
     file = file.join("/");
     if (!templateJsonLocs[prefix]) {
       const files = waw.getFilesRecursively(process.cwd(), {
-        end: "template.json",
+        end: "wjst.json",
       });
       for (const file of files) {
         const json = waw.readJson(file);
