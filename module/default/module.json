@@ -1,11 +1,11 @@
 {
-    "name": "CNAME",
-    "crud": {
-        "unique": [ "url" ],
-        "update": {
-            "keys": ["name", "description", "data"]
-        },
-        "delete": [""]
-    },
-    "dependencies": {}
+	"name": "CNAME",
+	"crud": {
+		"unique": ["url"],
+		"update": {
+			"keys": ["name", "description", "data"]
+		},
+		"delete": [""]
+	},
+	"dependencies": {}
 }

@@ -4,15 +4,16 @@ module.exports = async (waw) => {
 	waw.host = (host, callback) => {
 		return (req, res, next) => {
 			if (
-				(!host || req.get('host').toLowerCase() === host.toLowerCase()) &&
-				typeof callback === 'function'
+				(!host ||
+					req.get("host").toLowerCase() === host.toLowerCase()) &&
+				typeof callback === "function"
 			) {
 				callback(req, res, next);
 			} else {
 				next();
 			}
-		}
-	}
+		};
+	};
 
 	const dists = [];
 
@@ -32,7 +33,7 @@ module.exports = async (waw) => {
 		waw.app.get(url, (req, res) => {
 			res.sendFile(file);
 		});
-	}
+	};
 
 	waw.url = (file, links, obj, host) => {
 		if (host) host = host.toLowerCase();
@@ -42,7 +43,7 @@ module.exports = async (waw) => {
 		}
 
 		for (let i = links.length - 1; i >= 0; i--) {
-			if (links[i].indexOf('/:') > -1) {
+			if (links[i].indexOf("/:") > -1) {
 				get(links[i], file);
 
 				links.splice(i, 1);
@@ -69,16 +70,16 @@ module.exports = async (waw) => {
 		return htmls[url];
 	};
 
-	waw.render = function(file, obj, eject){
-		if (typeof eject === 'function') {
+	waw.render = function (file, obj, eject) {
+		if (typeof eject === "function") {
 			eject(obj);
 		}
 
 		return waw.wjst.renderFile(file, obj);
-	}
+	};
 
 	waw.use((req, res, next) => {
-		if (req.originalUrl.startsWith('/api/')) {
+		if (req.originalUrl.startsWith("/api/")) {
 			return next();
 		}
 
@@ -86,10 +87,7 @@ module.exports = async (waw) => {
 
 		if (req.url.indexOf(".") > -1) {
 			for (let i = 0; i < dists.length; i++) {
-				if (
-					dists[i].opts.host &&
-					dists[i].opts.host !== host
-				) {
+				if (dists[i].opts.host && dists[i].opts.host !== host) {
 					continue;
 				}
 

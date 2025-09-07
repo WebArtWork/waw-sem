@@ -1,7 +1,7 @@
-import Http from '/api/wjst/http';
+import Http from "/api/wjst/http";
 
 class Crud {
-	api = '';
+	api = "";
 
 	constructor(apiExtended) {
 		this.api = apiExtended;
@@ -25,11 +25,15 @@ class Crud {
 		}
 	}
 	perPage = 20;
-	getName = '';
-	async page(page, name = '') {
+	getName = "";
+	async page(page, name = "") {
 		try {
 			page--;
-			const response = await Http.get(`${this.api}/get${name || this.getName}?skip=${page * this.perPage}&limit=${this.perPage}`);
+			const response = await Http.get(
+				`${this.api}/get${name || this.getName}?skip=${
+					page * this.perPage
+				}&limit=${this.perPage}`
+			);
 			return response;
 		} catch (error) {
 			throw new Error(`Failed to get: ${error.message}`);
@@ -47,7 +51,9 @@ class Crud {
 
 	async fetch(options) {
 		try {
-			const response = await Http.post(`${this.api}/fetch${options.name || ''}`);
+			const response = await Http.post(
+				`${this.api}/fetch${options.name || ""}`
+			);
 			return response;
 		} catch (error) {
 			throw new Error(`Failed to fetch: ${error.message}`);

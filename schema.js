@@ -1,17 +1,19 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema({
 	name: String,
 	description: String,
-	author: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-	moderators: [{type: mongoose.Schema.Types.ObjectId, sparse: true, ref: 'User'}],
-	url: {type: String, unique: true, sparse: true, trim: true}
+	author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+	moderators: [
+		{ type: mongoose.Schema.Types.ObjectId, sparse: true, ref: "User" },
+	],
+	url: { type: String, unique: true, sparse: true, trim: true },
 });
 
-Schema.methods.create = function(obj, user, sd) {
+Schema.methods.create = function (obj, user, sd) {
 	this.author = user._id;
 	this.moderators = [user._id];
 	this.name = obj.name;
 	this.description = obj.description;
-}
+};
 
-module.exports = mongoose.model('CNAME', Schema);
+module.exports = mongoose.model("CNAME", Schema);
