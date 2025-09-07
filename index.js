@@ -212,26 +212,36 @@ module.exports = function (waw) {
 		}
 	};
 
-	waw.queryCrud = (config) => {
+	waw.queryCrud = (config, applyId = true) => {
 		if (config === "author") {
 			return (req) => {
-				return {
-					author: req.user._id,
-					_id: req.body._id,
-				};
+				return applyId
+					? {
+							author: req.user._id,
+							_id: req.body._id,
+					  }
+					: {
+							author: req.user._id,
+					  };
 			};
 		} else if (config === "moderator") {
 			return (req) => {
-				return {
-					moderators: req.user._id,
-					_id: req.body._id,
-				};
+				return applyId
+					? {
+							moderators: req.user._id,
+							_id: req.body._id,
+					  }
+					: {
+							moderators: req.user._id,
+					  };
 			};
 		} else {
 			return (req) => {
-				return {
-					_id: req.body._id,
-				};
+				return applyId
+					? {
+							_id: req.body._id,
+					  }
+					: {};
 			};
 		}
 	};
@@ -256,7 +266,7 @@ module.exports = function (waw) {
 		return {
 			get: {
 				ensure: waw.ensureCrud(Read),
-				query: waw.queryCrud(Read),
+				query: waw.queryCrud(Read, false),
 			},
 			fetch: {
 				ensure: waw.ensureCrud(Read),
