@@ -188,87 +188,99 @@ module.exports = function (waw) {
 
 	waw.block = (req, res) => res.send(false);
 
-	waw.next_user = (req, res, next) => {
+	waw.nextUser = (req, res, next) => {
 		if (!req.user) {
 			req.user = {
 				_id: req.sessionID,
 			};
 		}
+
 		next();
 	};
 
-	const methods = {
-		admin: {
-			create: {
-				ensure: waw.role("admin"),
-			},
+	waw.ensureCrud = (config) => {
+		if (
+			config === "author" ||
+			config === "moderator" ||
+			config === "authenticated"
+		) {
+			return waw.ensure;
+		} else if (config !== "all" && config) {
+			return waw.role(config);
+		} else {
+			return waw.next;
+		}
+	};
+
+	waw.queryCrud = (config) => {
+		if (config === "author") {
+			return (req) => {
+				return {
+					author: req.user._id,
+					_id: req.body._id,
+				};
+			};
+		} else if (config === "moderator") {
+			return (req) => {
+				return {
+					moderators: req.user._id,
+					_id: req.body._id,
+				};
+			};
+		} else {
+			return (req) => {
+				return {
+					_id: req.body._id,
+				};
+			};
+		}
+	};
+
+	waw.createCrud = (Create, Read, Update, Delete) => {
+		if (Create === undefined) {
+			Create = "moderator";
+		}
+
+		if (Read === undefined) {
+			Read = Create;
+		}
+
+		if (Update === undefined) {
+			Update = Create;
+		}
+
+		if (Delete === undefined) {
+			Delete = Create;
+		}
+
+		return {
 			get: {
-				ensure: waw.role("admin"),
+				ensure: waw.ensureCrud(Read),
+				query: waw.queryCrud(Read),
 			},
 			fetch: {
-				ensure: waw.role("admin"),
+				ensure: waw.ensureCrud(Read),
+				query: waw.queryCrud(Read),
 			},
-			update: {
-				ensure: waw.role("admin"),
-			},
-			delete: {
-				ensure: waw.role("admin"),
-			},
-		},
-		all: {
-			get: {
-				query: () => {
-					return {};
-				},
-			},
-		},
-		author: {
-			get: {
-				query: (req) => {
-					return { author: req.user._id };
-				},
-			},
-			update: {
-				query: (req) => {
-					return { _id: req.body._id, author: req.user._id };
-				},
-			},
-		},
-		offline: {
 			create: {
-				ensure: waw.next_user,
-			},
-			get: {
-				ensure: waw.next_user,
+				ensure: waw.ensureCrud(Create),
+				query: waw.queryCrud(Create),
 			},
 			update: {
-				ensure: waw.next_user,
+				ensure: waw.ensureCrud(Update),
+				query: waw.queryCrud(Update),
+			},
+			unique: {
+				ensure: waw.ensureCrud(Update),
+				query: waw.queryCrud(Update),
 			},
 			delete: {
-				ensure: waw.next_user,
+				ensure: waw.ensureCrud(Delete),
+				query: waw.queryCrud(Delete),
 			},
-		},
+		};
 	};
-	waw.crud_method = (use, config) => {
-		if (typeof use == "string") {
-			use = use.split(" ");
-		}
-		if (!config) config = {};
-		for (var i = 0; i < use.length; i++) {
-			if (methods[use[i]]) {
-				for (let type in methods[use[i]]) {
-					if (!config[type]) {
-						config[type] = {};
-					}
-					for (let func in methods[use[i]][type]) {
-						if (config[type][func]) continue;
-						config[type][func] = methods[use[i]][type][func];
-					}
-				}
-			}
-		}
-		return config;
-	};
+
 	/*
 	 *	Move to helper
 	 */
