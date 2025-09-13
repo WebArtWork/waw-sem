@@ -45,8 +45,8 @@ module.exports = function (waw) {
 
 	if (waw.mongoose.connection.readyState == 0 && waw.mongoUrl) {
 		waw.mongoose.connect(waw.mongoUrl, {
-			useUnifiedTopology: true,
-			useNewUrlParser: true,
+			// useUnifiedTopology: true,
+			// useNewUrlParser: true,
 			// useCreateIndex: true
 		});
 
