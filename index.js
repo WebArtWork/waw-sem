@@ -96,6 +96,21 @@ module.exports = function (waw) {
 		})
 	);
 
+	app.use((req, res, next) => {
+		req.queryParsed = {};
+
+		if (req.originalUrl.includes("?")) {
+			const queries = req.originalUrl.split("?")[1].split("&");
+
+			for (const query of queries) {
+				req.queryParsed[query.split("=")[0]] =
+					query.split("=").length > 1 ? query.split("=")[1] : null;
+			}
+		}
+
+		next();
+	});
+
 	if (!waw.config.port) waw.config.port = 8080;
 
 	server.listen(waw.config.port);
