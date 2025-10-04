@@ -99,13 +99,17 @@ module.exports = function (waw) {
 	app.use((req, res, next) => {
 		req.queryParsed = {};
 
-		if (req.originalUrl.includes("?")) {
-			const queries = req.originalUrl.split("?")[1].split("&");
-
-			for (const query of queries) {
-				req.queryParsed[query.split("=")[0]] =
-					query.split("=").length > 1 ? query.split("=")[1] : null;
+		try {
+			const protocol = req.secure ? "https" : "http";
+			const url = new URL(
+				req.originalUrl,
+				`${protocol}://${req.headers.host}`
+			);
+			for (const [key, value] of url.searchParams.entries()) {
+				req.queryParsed[key] = value;
 			}
+		} catch {
+			req.queryParsed = {};
 		}
 
 		next();
