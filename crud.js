@@ -168,7 +168,7 @@ module.exports = function (waw) {
 					const sort =
 						typeof waw["sort" + final_name] === "function"
 							? waw["sort" + final_name](req, res)
-							: req.query.sort
+							: req.queryParsed.sort
 							? _sort(req.query)
 							: false;
 					if (sort) {
@@ -177,14 +177,14 @@ module.exports = function (waw) {
 					const skip =
 						typeof waw["skip" + final_name] === "function"
 							? waw["skip" + final_name](req, res)
-							: req.query.skip || false;
+							: req.queryParsed.skip || false;
 					if (skip) {
 						query.skip(Number(skip));
 					}
 					const limit =
 						typeof waw["limit" + final_name] === "function"
 							? waw["limit" + final_name](req, res)
-							: req.query.limit || false;
+							: req.queryParsed.limit || false;
 					if (limit) {
 						query.limit(Number(limit));
 					}
