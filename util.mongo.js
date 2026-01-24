@@ -36,18 +36,31 @@ module.exports = function (waw) {
 	// Connect once if not connected
 	if (waw.mongoose.connection.readyState == 0 && waw.mongoUrl) {
 		waw.mongoose.connect(waw.mongoUrl, {
-			// useUnifiedTopology: true,
-			// useNewUrlParser: true,
-			// useCreateIndex: true
+			// keep old options commented
 		});
 
 		waw.mongoose.Promise = global.Promise;
 	}
 
-	// Session store
+	// Session store (connect-mongo export compatibility)
 	if (waw.mongoUrl) {
-		const MongoStore = require("connect-mongo");
-		store = MongoStore.create({ mongoUrl: waw.mongoUrl });
+		let MongoStore = require("connect-mongo");
+
+		// ESM interop: sometimes it's under `.default`
+		MongoStore = MongoStore && MongoStore.default ? MongoStore.default : MongoStore;
+
+		// Very old versions: connect-mongo(session) -> Store class
+		if (typeof MongoStore === "function" && !MongoStore.create) {
+			MongoStore = MongoStore(session);
+		}
+
+		// v5/v6: MongoStore.create(...)
+		if (MongoStore && typeof MongoStore.create === "function") {
+			store = MongoStore.create({ mongoUrl: waw.mongoUrl });
+		} else {
+			// fallback: constructor style (some variants)
+			store = new MongoStore({ mongoUrl: waw.mongoUrl });
+		}
 	}
 
 	// Session middleware (same settings)
