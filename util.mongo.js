@@ -68,4 +68,3 @@ module.exports = function (waw) {
 
 	waw.store = store;
 };
-

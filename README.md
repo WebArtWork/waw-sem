@@ -1,59 +1,109 @@
-# SEM
+# waw-sem
 
-[Socket.io](https://socket.io), [Express.js](https://expressjs.com) and [Mongodb](https://www.mongodb.com) combo which let you work smoothly on the client side with documents. This module contain CRUD management which connect with wacom, wrcom and wvcom.
+`waw-sem` is the **server engine module** of the waw framework.
+It provides HTTP routing, API composition, CRUD generation, database integration, sessions, and real-time sockets — all wired together through the global `waw` object.
 
-## Runners
+Sem is responsible for **turning modules into a running server**.
 
-### Generate new module
+---
 
-`waw add MODULE_NAME REPO_LINK BRANCH`<br>
-`waw add`
+## Core Responsibilities
 
-## waw Script
+### 🌐 HTTP & Routing
+- Express-based server bootstrap
+- Middleware pipeline (`waw.use`)
+- Dynamic routing via `waw.router()`
+- Page, API, and app dispatching
+- Subdomain-aware routing
 
-### This function accept configuration for `['create', 'get', 'fetch', 'update', 'unique', 'delete']` for the selected module.
+### 🧩 API Composition
+- `waw.api({...})` for registering:
+  - REST endpoints
+  - Pages
+  - Templates
+  - Static apps
+- Supports dynamic routes (`/:id`)
+- Domain and subdomain separation
 
-`waw.crud(module, config)`
+### 🗄 CRUD Engine
+- Declarative CRUD via `module.json`
+- Auto-generated endpoints:
+  - create / get / fetch / update / unique / delete
+- Hook system:
+  - `required_*`
+  - `ensure_*`
+  - `query_*`
+  - `sort / skip / limit / select / populate`
+- Mongoose-based schemas
 
-### Variable which contain url for mongodb connection
+### 🧠 MongoDB & Sessions
+- Mongoose integration
+- Optional Mongo-backed sessions via `connect-mongo`
+- Automatic connection handling
 
-`waw.mongoUrl`
+### 🔌 Real-time Sockets
+- Socket.IO integration
+- Default CRUD event broadcasting
+- Extendable via `waw.socket.add(fn)`
+- Room and global emits
 
-### Variable which has the storage where sessions will be kept
+---
 
-`waw.store`
+## Architecture Overview
 
-### Function which generate router by selected prefix
+```
 
-`waw.router(api)`
+server/sem/
+├── index.js            # Loads sem engine parts
+├── runner.js           # CLI commands (thin)
+├── util.express.js     # Express + HTTP + helpers
+├── util.mongo.js       # MongoDB + sessions
+├── util.socket.js      # Socket.IO
+├── util.api.js         # API composition & dispatch
+├── util.crud.js        # CRUD engine
+├── crud.wjst.js        # Client-side CRUD helper (WJST)
+├── module/
+│   └── default/        # Default module generator
+└── *.api.js / *.collection.js (user modules)
 
-### Object application from express, which allow you create custom express routes
+````
 
-`waw.app`
+---
 
-### Function which accept middlewares for express management in the same way with app.use, just make sure it's callback before all other routes
+## Usage
 
-`waw.use(callback)`
+Sem is **not installed via npm**.
+It is added and managed through the waw CLI:
 
-### Initialization of waw middleware
+```sh
+waw add waw-sem
+```
 
-`waw.set_middleware(which, callback)`
+Sem is loaded automatically based on module priority and provides server capabilities to all modules.
 
-### waw middleware use to parse express data or server side render
+---
 
-`waw.middleware(which, req, res, next)`
+## Module Integration
 
-### Express middleware which execute direct access to next function
+Modules can contribute to sem by providing:
 
-`waw.next`
+* `*.api.js` — API definitions
+* `*.collection.js` — Mongoose schemas
+* `crud` section in `module.json`
+* WJST templates and pages
 
-### Express middleware which ensure that `req.user` exists.
+Sem detects and wires these automatically at runtime.
 
-`waw.ensure`
+---
 
-## Contributing
+## Development Notes
 
-Thanks for your interest in contributing! Read up on our guidelines for
-[contributing](https://github.com/WebArtWork/sem/CONTRIBUTING.md)
-and then look through our issues with a [help wanted](https://github.com/WebArtWork/sem/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22)
-label.
+* Sem is designed to run on **Linux-first**, but supports Windows and macOS.
+* Avoid hardcoded Express routes — always use `waw.router()` or `waw.api()`.
+* Keep logic attached to `waw` for maximum reuse.
+
+---
+
+## License
+
+MIT © Web Art Work
