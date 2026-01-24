@@ -1,6 +1,7 @@
 const fs = require("fs");
 const wjst = require("wjst");
 const path = require("path");
+
 module.exports = async function (waw) {
 	// TODO remove on version 23.3.X
 	if (typeof waw.module_each_file !== "function") {

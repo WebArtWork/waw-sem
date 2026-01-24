@@ -4,8 +4,8 @@ module.exports = function (waw) {
 		return body;
 	};
 	/*
-	 *	Crud Fill
-	 */
+	*	Crud Fill
+	*/
 	const fill_crud = function (part, which, config) {
 		const prefix =
 			which + "_" + part + ((config.name && "_" + config.name) || "");
@@ -51,8 +51,8 @@ module.exports = function (waw) {
 		}
 	};
 	/*
-	 *	Crud Use
-	 */
+	*	Crud Use
+	*/
 	const ensure = function (name) {
 		return function (req, res, next) {
 			let required = waw[name.replace("ensure_", "required_")];
@@ -98,7 +98,7 @@ module.exports = function (waw) {
 		// 	fs.writeFileSync(schemaPath, data, "utf8");
 		// }
 
-		const Schema = waw[crudCapitalName]
+		let Schema = waw[crudCapitalName]
 			? waw[crudCapitalName]
 			: require(schemaPath);
 
@@ -116,8 +116,8 @@ module.exports = function (waw) {
 			res.json(waw.resp(doc, 200, "Successful"));
 		};
 		/*
-		 *	Create
-		 */
+		*	Create
+		*/
 		router.post(
 			"/create",
 			ensure("ensure_create_" + crudName),
@@ -142,8 +142,8 @@ module.exports = function (waw) {
 			}
 		);
 		/*
-		 *	Read
-		 */
+		*	Read
+		*/
 		const get_unique = {};
 		const _sort = (params) => {
 			const sort = {};
@@ -169,8 +169,8 @@ module.exports = function (waw) {
 						typeof waw["sort" + final_name] === "function"
 							? waw["sort" + final_name](req, res)
 							: req.queryParsed.sort
-							? _sort(req.query)
-							: false;
+								? _sort(req.query)
+								: false;
 					if (sort) {
 						query.sort(sort);
 					}
@@ -211,11 +211,14 @@ module.exports = function (waw) {
 			for (let i = 0; i < crud.get.length; i++) {
 				crud_get(crud.get[i]);
 			}
-		} else if (typeof crud.get == "string") crud_get(crud.get[i]);
-		else crud_get("");
+		} else if (typeof crud.get == "string") {
+			crud_get(crud.get);
+		} else {
+			crud_get("");
+		}
 		/*
-		 *	Fetch
-		 */
+		*	Fetch
+		*/
 		const crud_fetch = function (name) {
 			let final_name = "_fetch_" + crudName;
 			if (name) final_name += "_" + name;
@@ -251,8 +254,8 @@ module.exports = function (waw) {
 			}
 		} else crud_fetch("");
 		/*
-		 *	Update
-		 */
+		*	Update
+		*/
 		const crud_update = function (upd) {
 			let final_name = "_update_" + crudName;
 			if (upd.name) final_name += "_" + upd.name;
@@ -286,8 +289,8 @@ module.exports = function (waw) {
 			}
 		} else if (typeof crud.update == "object") crud_update(crud.update);
 		/*
-		 *	Unique
-		 */
+		*	Unique
+		*/
 		var crud_unique = function (upd) {
 			if (typeof upd === "string") {
 				upd = {
@@ -349,8 +352,8 @@ module.exports = function (waw) {
 			}
 		} else if (typeof crud.unique == "object") crud_unique(crud.unique);
 		/*
-		 *	Delete
-		 */
+		*	Delete
+		*/
 		var crud_delete = function (name) {
 			let final_name = "_delete_" + crudName;
 			if (name) final_name += "_" + name;
@@ -394,8 +397,8 @@ module.exports = function (waw) {
 			}
 		}
 		/*
-		 *	End of CRUD
-		 */
+		*	End of CRUD
+		*/
 	};
 	for (var i = 0; i < waw.modules.length; i++) {
 		if (waw.modules[i].crud) {
@@ -406,8 +409,8 @@ module.exports = function (waw) {
 					} else {
 						console.log(
 							"CRUD on module " +
-								waw.modules[i].name +
-								" is not used because there is no name."
+							waw.modules[i].name +
+							" is not used because there is no name."
 						);
 					}
 				}
@@ -420,6 +423,6 @@ module.exports = function (waw) {
 		}
 	}
 	/*
-	 *	Support for 0.x version of waw until 2.0
-	 */
+	*	Support for 0.x version of waw until 2.0
+	*/
 };

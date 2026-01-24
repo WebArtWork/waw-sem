@@ -5,18 +5,17 @@
 	"runner": "runner.js",
 	"priority": 905,
 	"dependencies": {
-		"express": "5.1.0",
-		"mongoose": "8.18.1",
+		"express": "5.2.1",
+		"express-session": "1.19.0",
+		"mongoose": "8.21.1",
 		"connect-mongo": "5.1.0",
-		"express-session": "1.18.2",
-		"body-parser": "*",
-		"formidable": "*",
-		"method-override": "*",
-		"serve-favicon": "*",
-		"cookie-parser": "*",
-		"socket.io": "*",
+		"body-parser": "2.2.2",
+		"formidable": "3.5.4",
+		"method-override": "3.0.0",
+		"serve-favicon": "2.5.1",
+		"cookie-parser": "1.4.7",
+		"socket.io": "4.8.3",
 		"marked": "16.1.1",
-		"node-fetch": "2",
-		"wjst": "*"
+		"wjst": "1.1.0"
 	}
 }
