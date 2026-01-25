@@ -1,9 +1,10 @@
 {
 	"repo": "git@github.com:WebArtWork/waw-sem.git",
 	"name": "Sem",
+	"before": "*",
+	"after": "core",
 	"router": "index.js",
 	"runner": "runner.js",
-	"priority": 905,
 	"dependencies": {
 		"express": "5.2.1",
 		"express-session": "1.19.0",
