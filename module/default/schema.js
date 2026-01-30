@@ -21,14 +21,7 @@ module.exports = async function (waw) {
 		this.author = user._id;
 
 		this.moderators = [user._id];
-
-		this.name = obj.name;
-
-		this.description = obj.description;
-
-		this.data = obj.data;
-
-		this.url = obj.url;
 	};
+
 	return (waw.CNAME = waw.mongoose.model("CNAME", Schema));
 };
