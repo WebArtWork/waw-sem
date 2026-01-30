@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 /*
  *	Modules Management (waw add / waw a)
  */

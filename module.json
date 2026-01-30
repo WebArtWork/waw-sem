@@ -3,8 +3,6 @@
 	"name": "Sem",
 	"before": "*",
 	"after": "core",
-	"router": "index.js",
-	"runner": "runner.js",
 	"dependencies": {
 		"express": "5.2.1",
 		"express-session": "1.19.0",
@@ -16,7 +14,6 @@
 		"serve-favicon": "2.5.1",
 		"cookie-parser": "1.4.7",
 		"socket.io": "4.8.3",
-		"marked": "16.1.1",
-		"wjst": "1.1.0"
+		"marked": "17.0.1"
 	}
 }
