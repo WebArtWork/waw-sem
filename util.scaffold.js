@@ -10,7 +10,7 @@ const defaults = {
 };
 
 module.exports.newModule = async function newModule(waw) {
-	const t = terminal();
+	const t = waw.terminal();
 
 	let name = null;
 	if (waw.argv && (waw.argv[0] === "add" || waw.argv[0] === "a"))

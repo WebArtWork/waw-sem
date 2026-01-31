@@ -2,7 +2,7 @@ module.exports = async function (waw) {
 	waw.ensureDir(waw.base);
 
 	const createLocal = () => {
-		waw.readWrite(waw.template + "/index.js", waw.base + `/api.js`, {
+		waw.readWrite(waw.template + "/api.js", waw.base + `/api.js`, {
 			CNAME: waw.Name,
 			NAME: waw.name,
 		});
@@ -12,7 +12,7 @@ module.exports = async function (waw) {
 			NAME: waw.name,
 		});
 
-		waw.readWrite(waw.template + "/schema.json", waw.base + `/${waw.name}.collection.json`, {
+		waw.readWrite(waw.template + "/collection.js", waw.base + `/${waw.name}.collection.js`, {
 			CNAME: waw.Name,
 			NAME: waw.name,
 		});

@@ -1,19 +1,13 @@
 const socketIo = require("socket.io");
 
 module.exports = function (waw) {
-	// must have server from util.express
-	const server = waw.server;
-	if (!server) {
+	if (!waw.server) {
 		throw new Error("util.socket requires waw.server (call util.express first)");
 	}
 
-	const io = socketIo(server, {
-		cors: {
-			origins: "*:*",
-			transports: ["websocket", "polling"],
-			credentials: false,
-		},
-		allowEIO3: true,
+	const io = new socketIo.Server(waw.server, {
+		cors: { origin: "*" },
+		transports: ["websocket", "polling"]
 	});
 
 	/*
@@ -52,7 +46,7 @@ module.exports = function (waw) {
 
 	io.on("connection", function (socket) {
 		for (var i = 0; i < connections.length; i++) {
-			if (typeof connections[i] == "function") {
+			if (typeof connections[i] === "function") {
 				connections[i](socket);
 			}
 		}

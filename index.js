@@ -1,17 +1,34 @@
-module.exports = function (waw) {
+module.exports = async function (waw) {
 	require("./util.express")(waw);
 
-	// require("./util.mongo")(waw);
+	await require("./util.mongo")(waw);
 
-	// require("./util.socket")(waw);
+	require("./util.socket")(waw);
 
-	// require("./util.crud")(waw);
+	require("./util.crud")(waw);
 
-	// require("./util.file")(waw);
+	for (const m of waw.modules) {
+		for (const f of m.files) {
+			if (f.endsWith('collection.js')) {
+				await require(f)(waw);
+			}
+		}
+	}
 
-	// require("./util.serve")(waw);
+	for (const m of waw.modules) {
+		for (const f of m.files) {
+			if (f.endsWith('api.js')) {
+				await require(f)(waw);
+			}
+		}
+	}
 
-	// require("./util.wjst")(waw);
+	/*
+	*	Start server
+	*/
+	if (!waw.config.port) waw.config.port = 8080;
 
-	// require("./util.api")(waw);
+	waw.server.listen(waw.config.port);
+
+	console.log("App listening on port " + waw.config.port);
 };

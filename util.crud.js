@@ -1,8 +1,4 @@
-const fs = require("fs");
 module.exports = function (waw) {
-	waw.resp = function (body) {
-		return body;
-	};
 	/*
 	*	Crud Fill
 	*/
@@ -77,6 +73,7 @@ module.exports = function (waw) {
 		};
 	};
 	const add_crud = async function (crud, part, unique = true) {
+		return;
 		await waw.wait(1000);
 		const crudName = crud.name.toString().toLowerCase();
 		const crudCapitalName =

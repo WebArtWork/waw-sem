@@ -1,5 +1,5 @@
 {
-	"repo": "git@github.com:WebArtWork/waw-sem.git",
+	"repo": "https://github.com/WebArtWork/waw-sem.git",
 	"name": "Sem",
 	"before": "*",
 	"after": "core",
@@ -8,7 +8,6 @@
 		"express-session": "1.19.0",
 		"mongoose": "9.1.5",
 		"connect-mongo": "6.0.0",
-		"body-parser": "2.2.2",
 		"formidable": "3.5.4",
 		"method-override": "3.0.0",
 		"serve-favicon": "2.5.1",
