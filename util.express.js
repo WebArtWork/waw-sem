@@ -9,6 +9,10 @@ module.exports = function (waw) {
 	const app = express();
 	const server = http.createServer(app);
 
+	app.get("/status", (req, res) => {
+		res.status(200).send(true);
+	});
+
 	// expose basics
 	waw.app = app;
 	waw.server = server;

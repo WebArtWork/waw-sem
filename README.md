@@ -1,123 +1,158 @@
-
-waw-sem is the server engine module of the waw framework. It provides the runtime pieces that turn a set of waw modules into a running backend: an Express HTTP server, optional MongoDB connection and session storage, Socket.IO real-time transport, and a declarative CRUD engine. When loaded, sem exposes `waw.app`, `waw.server`, and `waw.express`, provides `waw.router(basePath)` for mounting module routers, and sets common helpers such as `waw.ensure(req,res,next)` and `waw.role(roles, middleware)` for authorization. Sem also provides `waw.socket` with `io`, `emit(to, message, room?)`, and `add(fn)` to extend connection behavior, and it provides `waw.crud` to register CRUD behavior from module configuration and finalize route generation. At startup, sem loads every `*.collection.js` file from all modules (to register Mongoose models / schemas), then loads every `*.api.js` file (to register routes/endpoints), then calls `waw.crud.finalize()` to generate CRUD endpoints, and finally starts listening on `waw.config.port` (default `8080`).
-```
-
----
-
-## `server/sem/README.md` (rewrite + fixes)
-
-This version keeps your existing sections but tightens language, updates structure names (you had `runner.js` in the doc but the module uses `cli.js`), and describes *exactly* what Sem exports / wires.
-
-````md
 # waw-sem
 
-`waw-sem` is the **server engine module** of the waw framework. It wires together HTTP, database, CRUD, and sockets through the shared `waw` context so that modules can contribute backend behavior by adding convention-based files and configuration.
+**waw-sem** is the server engine module for the waw platform. It wires together an Express HTTP server, optional MongoDB connection + session middleware, Socket.IO transport, and a convention-driven CRUD generator. Sem exposes its runtime API through the shared `waw` context so other modules can contribute backend behavior by adding `*.collection.js`, `*.api.js`, and/or `module.crud` configuration.
 
 ---
 
-## What Sem Provides
+## What Sem Does at Runtime
 
-### 🌐 HTTP server (Express)
-Sem boots an Express app and Node HTTP server and exposes:
+When `server/sem/index.js` runs, it performs these steps in order:
 
-- `waw.app` — Express app instance
-- `waw.server` — Node HTTP server (created from the Express app)
+1. Initializes Express + HTTP server (`util.express`)
+2. Initializes MongoDB + sessions (`util.mongo`)
+   - Connects Mongoose if `waw.config.mongo` is configured
+   - Always installs `express-session` middleware
+3. Initializes Socket.IO (`util.socket`)
+4. Initializes CRUD engine (`util.crud`)
+5. Loads every module file ending with `collection.js` (in module order)
+6. Loads every module file ending with `api.js` (in module order)
+7. Calls `waw.crud.finalize()` to register CRUD endpoints from module configs
+8. Starts listening on `waw.config.port` (defaults to `8080`)
+
+---
+
+## Exposed API on `waw`
+
+### Express / HTTP
+`util.express.js` creates and exposes:
+
+- `waw.app` — Express app
+- `waw.server` — Node HTTP server created from the Express app
 - `waw.express` — Express export
-- `waw.router(basePath)` — creates and mounts an Express Router at `basePath`
+- `waw.router(basePath)` — mounts an Express Router at `basePath` and returns it
 
-It also installs common middleware:
+Built-in routes / middleware:
+
+- `GET /status` — returns HTTP 200 with `true`
 - `cookie-parser`
-- `method-override`
-- query parsing into `req.queryParsed`
+- `method-override("X-HTTP-Method-Override")`
+- `req.queryParsed` — parsed query string params copied into an object
+- Optional favicon if `waw.config.icon` points to an existing file
 
-### 🧠 MongoDB + Sessions
-If `waw.config.mongo` is present, Sem builds `waw.mongoUrl` and connects Mongoose, exposing:
+Auth helpers:
+
+- `waw.ensure(req,res,next)` — requires `req.user` or responds with `waw.resp(false)`
+- `waw.role(roles, middleware?)` — role gating based on `req.user.is[role]`, responds `401` with `false` on failure
+- `waw.next` and `waw.block` convenience helpers
+
+> Note: `util.express` defines `waw.resp = (body) => body` as a minimal default; CRUD uses `waw.resp(...)` when sending JSON responses.
+
+---
+
+### MongoDB + Sessions
+`util.mongo.js` sets:
 
 - `waw.mongoose` — Mongoose instance
-- `waw.mongoUrl` — resolved Mongo connection URI (when configured)
-- session middleware using `express-session`
-- optional Mongo-backed sessions via `connect-mongo` (when Mongo is configured)
-- `waw.store` — session store instance (when enabled)
+- `waw.mongoUrl` — resolved Mongo connection string when Mongo is configured
+- `waw.store` — session store instance when Mongo is configured (Connect-Mongo), otherwise `undefined`
 
-Sem maintains rotating session secret keys in `server.json` under `secretKeys` (supports key rotation with multiple active secrets).
+Mongo configuration behavior:
 
-### 🔌 Real-time sockets (Socket.IO)
-Sem initializes Socket.IO on `waw.server` and exposes:
+- If `waw.config.mongo` is a string, it is treated as the full Mongo URI.
+- If it is an object, Sem supports building a URI from keys such as `srv`, `uri`, `host/hosts`, `port`, `user/pass`, `db`, and optional query options (via `options` object or top-level fields like `replicaSet`, `authSource`, `readPreference`, etc.).
+- If `waw.mongoUrl` exists and Mongoose is not connected, Sem connects and logs basic connection events.
 
-- `waw.socket.io` — Socket.IO server instance
-- `waw.socket.emit(event, payload, room?)` — emit globally or to a room
-- `waw.socket.add(fn)` — extend connection handlers
+Sessions behavior:
 
-Default socket forwarding is provided for common CRUD events (`create`, `update`, `unique`, `delete`).
-
-### 🧩 Convention-based module wiring
-Sem turns modules into server behavior by loading:
-
-- `*.collection.js` — loaded first (models/schemas registration)
-- `*.api.js` — loaded after collections (route/API registration)
-
-This allows modules to “plug in” by simply adding files with the correct suffix.
-
-### 🗄 CRUD engine
-Sem provides a CRUD generator and hook system through:
-
-- `waw.crud.config(part, config)` — registers per-action rules/hooks
-- `waw.crud.register(crudConfig, module, unique?)` — creates routes for a CRUD resource
-- `waw.crud.finalize()` — scans all modules for `module.crud` and registers endpoints
-
-Generated endpoints follow `/api/<crudName>/...` and include:
-- `POST /create`
-- `GET  /get`
-- `POST /fetch`
-- `POST /update`
-- `POST /unique`
-- `POST /delete`
-
-Hooks are attached onto `waw` using predictable names (per crudName / action), supporting:
-- `required_*` (required body fields)
-- `ensure_*` (custom authorization / validation)
-- `query_*` (query builder)
-- `sort_*`, `skip_*`, `limit_*`
-- `select_*`, `populate_*`
+- Installs `express-session` middleware.
+- Cookie max age defaults to one year unless `waw.config.session` is a number.
+- Cookie `domain` uses `waw.config.domain` when provided.
+- Session name is `express.sid.<prefix>` where `<prefix>` is `waw.config.prefix` or empty.
+- Secret rotation is maintained in the project’s `server.json` under `secretKeys` as an array of `{ key, createdAt }`.
+  - A new secret is generated if there is no secret or the newest secret is older than one week.
+  - Up to 5 recent secrets are kept to allow rotation without breaking existing sessions.
 
 ---
 
-## Runtime Flow
+### Socket.IO
+`util.socket.js` creates a Socket.IO server on `waw.server` and exposes:
 
-When `server/sem/index.js` runs:
+- `waw.socket.io` — Socket.IO server instance
+- `waw.socket.emit(event, payload, room?)` — emits globally or to a room
+- `waw.socket.add(fn)` — adds a connection handler `(socket) => { ... }`
 
-1. Express server is created (`util.express`)
-2. Mongo + sessions are initialized if configured (`util.mongo`)
-3. Socket.IO is initialized (`util.socket`)
-4. CRUD engine is initialized (`util.crud`)
-5. All `*.collection.js` files are loaded
-6. All `*.api.js` files are loaded
-7. `waw.crud.finalize()` registers CRUD routes from module configs
-8. Server listens on `waw.config.port` (default `8080`)
+Defaults:
+
+- CORS allows any origin (`origin: "*"`)
+- Transports: `websocket` and `polling`
+- On connection, a default handler forwards `create`, `update`, `unique`, `delete` events to all other clients via `socket.broadcast.emit(...)`.
+
+---
+
+## CRUD Engine
+
+`util.crud.js` provides:
+
+- `waw.crud.config(part, config)` — registers hooks and rules for CRUD actions into the `waw` object under predictable names
+- `waw.crud.register(crud, part, unique = true)` — mounts endpoints under `/api/<crudName>` and wires hooks
+- `waw.crud.finalize()` — scans `waw.modules[*].crud` and registers CRUD endpoints for each configured resource
+
+### Endpoint set
+For each CRUD resource named `<crudName>`, Sem mounts routes under:
+
+- `/api/<crudName>/create` (POST)
+- `/api/<crudName>/get...` (GET; supports named variants)
+- `/api/<crudName>/fetch...` (POST; supports named variants)
+- `/api/<crudName>/update...` (POST; supports named variants)
+- `/api/<crudName>/unique...` (POST; supports named variants)
+- `/api/<crudName>/delete...` (POST; supports named variants)
+
+### Hook wiring
+`waw.crud.config(part, config)` reads per-action config objects and stores behavior on `waw` using names like:
+
+- `required_<action>_<part>[_<name>]` (array of required body fields)
+- `ensure_<action>_<part>[_<name>]` (custom ensure middleware)
+- `query_<action>_<part>[_<name>]`
+- `sort_<action>_<part>[_<name>]`, `skip_...`, `limit_...`
+- `select_...`, `populate_...`
+
+At request time, Sem uses these to validate required fields, authorize access, and modify query behavior.
+
+### Models / schema resolution
+When registering a resource, Sem resolves a Mongoose model as:
+
+- `waw.<CrudCapitalName>` if already present on `waw`, otherwise
+- `require(<moduleRoot>/schema.js)` (or `schema_<crudName>.js` when `unique=false`)
+
+If the required schema export is a function without a name, it is invoked as `Schema(waw)`.
+
+---
+
+## Convention-based Module Wiring
+
+Sem loads files from all modules based on filename suffix:
+
+- `*.collection.js` — loaded first (intended for model/schema registration)
+- `*.api.js` — loaded second (intended for mounting routes/endpoints)
+
+Each such file is required and invoked as `await require(file)(waw)`.
 
 ---
 
 ## CLI
 
-Sem provides module scaffolding:
+Sem exposes a module scaffolding command via `server/sem/cli.js`:
 
-- `waw add` / `waw a` — create a new module using the sem default module template (`server/sem/module/default`)
+- `waw add <module>` / `waw a <module>` — creates a module under the project modules directory using the Sem template (`server/sem/module/default/scaffold.js`)
 
 ---
 
-## Structure
+## Module Manifest
 
-```txt
-server/sem/
-├── cli.js              # CLI exports (thin)
-├── index.js            # Sem runtime bootstrap
-├── util.express.js     # Express + helpers
-├── util.mongo.js       # Mongo connection + sessions
-├── util.socket.js      # Socket.IO
-├── util.crud.js        # CRUD generator + hooks
-├── module.json         # Module manifest (deps + ordering)
-└── module/default/     # Default module scaffold template
-````
+Sem is defined by `server/sem/module.json`:
+
+- `after: "core"` and `before: "*"` to ensure it runs after core but before other modules by default
+- Installs dependencies including `express`, `mongoose`, `express-session`, `connect-mongo`, `socket.io`, and others used by its utilities
 
 ---
 
