@@ -23,6 +23,8 @@ module.exports = async function (waw) {
 		}
 	}
 
+	waw.crud.finalize();
+
 	/*
 	*	Start server
 	*/

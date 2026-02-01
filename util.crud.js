@@ -2,7 +2,7 @@ module.exports = function (waw) {
 	/*
 	*	Crud Fill
 	*/
-	const fill_crud = function (part, which, config) {
+	const fillCrud = function (part, which, config) {
 		const prefix =
 			which + "_" + part + ((config.name && "_" + config.name) || "");
 		if (typeof config.required == "string") {
@@ -34,15 +34,16 @@ module.exports = function (waw) {
 		}
 	};
 	const crudTypes = ["create", "get", "fetch", "update", "unique", "delete"];
-	waw.crud = function (part, config) {
+	waw.crud = {};
+	waw.crud.config = function (part, config) {
 		for (let i = 0; i < crudTypes.length; i++) {
 			if (Array.isArray(config[crudTypes[i]])) {
 				for (let j = 0; j < config[crudTypes[i]].length; j++) {
 					if (typeof config[crudTypes[i]][j] != "object") continue;
-					fill_crud(part, crudTypes[i], config[crudTypes[i]][j]);
+					fillCrud(part, crudTypes[i], config[crudTypes[i]][j]);
 				}
 			} else if (typeof config[crudTypes[i]] == "object") {
-				fill_crud(part, crudTypes[i], config[crudTypes[i]]);
+				fillCrud(part, crudTypes[i], config[crudTypes[i]]);
 			}
 		}
 	};
@@ -72,9 +73,8 @@ module.exports = function (waw) {
 			}
 		};
 	};
-	const add_crud = async function (crud, part, unique = true) {
-		return;
-		await waw.wait(1000);
+
+	waw.crud.register = function (crud, part, unique = true) {
 		const crudName = crud.name.toString().toLowerCase();
 		const crudCapitalName =
 			crudName.charAt(0).toUpperCase() + crudName.substr(1).toLowerCase();
@@ -166,7 +166,7 @@ module.exports = function (waw) {
 						typeof waw["sort" + final_name] === "function"
 							? waw["sort" + final_name](req, res)
 							: req.queryParsed.sort
-								? _sort(req.query)
+								? _sort(req.queryParsed)
 								: false;
 					if (sort) {
 						query.sort(sort);
@@ -397,29 +397,29 @@ module.exports = function (waw) {
 		*	End of CRUD
 		*/
 	};
-	for (var i = 0; i < waw.modules.length; i++) {
-		if (waw.modules[i].crud) {
-			if (Array.isArray(waw.modules[i].crud)) {
-				for (var j = 0; j < waw.modules[i].crud.length; j++) {
-					if (waw.modules[i].crud[j].name) {
-						add_crud(waw.modules[i].crud[j], waw.modules[i], false);
-					} else {
-						console.log(
-							"CRUD on module " +
-							waw.modules[i].name +
-							" is not used because there is no name."
-						);
+
+	waw.crud.finalize = () => {
+		for (var i = 0; i < waw.modules.length; i++) {
+			if (waw.modules[i].crud) {
+				if (Array.isArray(waw.modules[i].crud)) {
+					for (var j = 0; j < waw.modules[i].crud.length; j++) {
+						if (waw.modules[i].crud[j].name) {
+							waw.crud.register(waw.modules[i].crud[j], waw.modules[i], false);
+						} else {
+							console.log(
+								"CRUD on module " +
+								waw.modules[i].name +
+								" is not used because there is no name."
+							);
+						}
 					}
+				} else {
+					if (!waw.modules[i].crud.name) {
+						waw.modules[i].crud.name = waw.modules[i].name;
+					}
+					waw.crud.register(waw.modules[i].crud, waw.modules[i]);
 				}
-			} else {
-				if (!waw.modules[i].crud.name) {
-					waw.modules[i].crud.name = waw.modules[i].name;
-				}
-				add_crud(waw.modules[i].crud, waw.modules[i]);
 			}
 		}
 	}
-	/*
-	*	Support for 0.x version of waw until 2.0
-	*/
 };
