@@ -36,7 +36,6 @@ Built-in routes / middleware:
 - `GET /status` — returns HTTP 200 with `true`
 - `cookie-parser`
 - `method-override("X-HTTP-Method-Override")`
-- `req.queryParsed` — parsed query string params copied into an object
 - Optional favicon if `waw.config.icon` points to an existing file
 
 Auth helpers:

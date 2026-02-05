@@ -33,25 +33,9 @@ module.exports = function (waw) {
 	 */
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
+	app.use(express.json({ limit: '10mb' }));
+	app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-	/*
-	 *	Query parsing into req.queryParsed (same behavior)
-	 */
-	app.use((req, res, next) => {
-		req.queryParsed = {};
-
-		try {
-			const protocol = req.secure ? "https" : "http";
-			const url = new URL(req.originalUrl, `${protocol}://${req.headers.host}`);
-			for (const [key, value] of url.searchParams.entries()) {
-				req.queryParsed[key] = value;
-			}
-		} catch {
-			req.queryParsed = {};
-		}
-
-		next();
-	});
 
 	/*
 	 *	Helpers
