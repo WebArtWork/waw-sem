@@ -380,9 +380,6 @@ module.exports = function (waw) {
 							author: req.user._id,
 						}
 					);
-					if (typeof waw["on" + name] == "function") {
-						waw["on" + name](doc, req, res);
-					}
 					waw.emit(crudName + "_delete", doc);
 					res.json(waw.resp(true, 200, "Successful"));
 				}
