@@ -33,15 +33,8 @@ module.exports = function (waw) {
 	 *	Base middleware
 	 */
 	const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
-	// app.use(corsConfig);
-	// app.options(/.*/, corsConfig);
-	app.use((req, res, next) => {
-		res.setHeader('Access-Control-Allow-Origin', '*');
-		res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-		res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-		if (req.method === 'OPTIONS') return res.sendStatus(204);
-		next();
-	});
+	app.use(corsConfig);
+	app.options(/.*/, corsConfig);
 
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
