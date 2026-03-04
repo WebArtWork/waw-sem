@@ -1,6 +1,7 @@
 const path = require("node:path");
 const express = require("express");
 const http = require("http");
+const cors = require("cors");
 const favicon = require("serve-favicon");
 const cookieParser = require("cookie-parser");
 const methodOverride = require("method-override");
@@ -31,6 +32,9 @@ module.exports = function (waw) {
 	/*
 	 *	Base middleware
 	 */
+	const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
+	app.use(corsConfig);
+	app.options(/.*/, corsConfig);
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
 	app.use(express.json({ limit: '10mb' }));
