@@ -1,5 +1,6 @@
 const path = require("node:path");
 const express = require("express");
+const session = require('express-session');
 const http = require("http");
 const cors = require("cors");
 const favicon = require("serve-favicon");
@@ -29,9 +30,21 @@ module.exports = function (waw) {
 	/*
 	 *	Base middleware
 	 */
-	// const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
-	// app.options(/.*/, corsConfig);
-
+	app.options(/.*/, cors());
+	app.set('trust proxy', 1);
+	app.use(
+		session({
+			secret: waw.config.sessionSecret || 'Web Art Work Secret',
+			proxy: true,
+			resave: false,
+			saveUninitialized: false,
+			cookie: {
+				httpOnly: true,
+				sameSite: 'none',
+				secure: true,
+			},
+		}),
+	);
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
 	app.use(express.json({ limit: '10mb' }));
