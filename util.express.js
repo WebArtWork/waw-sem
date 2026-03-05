@@ -29,8 +29,8 @@ module.exports = function (waw) {
 	/*
 	 *	Base middleware
 	 */
-	const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
-	app.options(/.*/, corsConfig);
+	// const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
+	// app.options(/.*/, corsConfig);
 
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
@@ -52,7 +52,7 @@ module.exports = function (waw) {
 	 *	Base routes
 	 */
 	const baseRouter = waw.router('');
-	baseRouter.use(corsConfig())
+	// baseRouter.use(corsConfig())
 	baseRouter.get("/status", (req, res) => {
 		res.status(200).send(true);
 	});
