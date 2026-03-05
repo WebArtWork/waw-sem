@@ -10,12 +10,9 @@ module.exports = function (waw) {
 	const app = express();
 	const server = http.createServer(app);
 
-	app.get("/status", (req, res) => {
-		res.status(200).send(true);
-	});
-
 	// expose basics
 	waw.app = app;
+	waw.cors = cors;
 	waw.server = server;
 	waw.express = express;
 
@@ -33,14 +30,12 @@ module.exports = function (waw) {
 	 *	Base middleware
 	 */
 	const corsConfig = waw.config.cors ? cors(waw.config.cors) : cors();
-	app.use(corsConfig);
 	app.options(/.*/, corsConfig);
 
 	app.use(cookieParser());
 	app.use(methodOverride("X-HTTP-Method-Override"));
 	app.use(express.json({ limit: '10mb' }));
 	app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 
 	/*
 	 *	Helpers
@@ -52,6 +47,15 @@ module.exports = function (waw) {
 
 		return router;
 	};
+
+	/*
+	 *	Base routes
+	 */
+	const baseRouter = waw.router('');
+	baseRouter.use(corsConfig())
+	baseRouter.get("/status", (req, res) => {
+		res.status(200).send(true);
+	});
 
 	/*
 	 *	Auth/roles helpers (same as original)
