@@ -47,7 +47,6 @@ module.exports.newModule = async function newModule(waw) {
 
 	const ctx = {
 		...waw,
-		git,
 		// template inputs
 		name,
 		Name: name.charAt(0).toUpperCase() + name.slice(1),
