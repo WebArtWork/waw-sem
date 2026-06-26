@@ -1,4 +1,6 @@
 module.exports = function (waw) {
+	const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
 	/*
 	*	Crud Fill
 	*/
@@ -95,9 +97,20 @@ module.exports = function (waw) {
 		// 	fs.writeFileSync(schemaPath, data, "utf8");
 		// }
 
-		let Schema = waw[crudCapitalName]
-			? waw[crudCapitalName]
-			: require(schemaPath);
+		let Schema;
+		if (waw[crudCapitalName]) {
+			Schema = waw[crudCapitalName];
+		} else {
+			try {
+				Schema = require(schemaPath);
+			} catch (err) {
+				if (err.code === 'MODULE_NOT_FOUND') {
+					console.warn(`[crud] schema not found for "${crudName}", skipping: ${schemaPath}`);
+					return;
+				}
+				throw err;
+			}
+		}
 
 		if (typeof Schema === "function" && !Schema.name) {
 			Schema = Schema(waw);
@@ -118,7 +131,7 @@ module.exports = function (waw) {
 		router.post(
 			"/create",
 			ensure("ensure_create_" + crudName),
-			function (req, res) {
+			asyncRoute(async (req, res) => {
 				const doc = new Schema(req.body || {});
 
 				const final_name = "_create_" + crudName;
@@ -135,8 +148,8 @@ module.exports = function (waw) {
 					}
 				}
 
-				save(doc, res, crudName + "_create");
-			}
+				await save(doc, res, crudName + "_create");
+			})
 		);
 		/*
 		*	Read
@@ -155,7 +168,7 @@ module.exports = function (waw) {
 			router.get(
 				"/get" + name,
 				ensure("ensure" + final_name),
-				async (req, res) => {
+				asyncRoute(async (req, res) => {
 					let query = (waw["query" + final_name] &&
 						waw["query" + final_name](req, res)) || {
 						moderators: req.user && req.user._id,
@@ -201,7 +214,7 @@ module.exports = function (waw) {
 					}
 					const docs = await query.exec();
 					res.json(waw.resp(docs || [], 200, "Successful"));
-				}
+				})
 			);
 		};
 		if (Array.isArray(crud.get)) {
@@ -222,7 +235,7 @@ module.exports = function (waw) {
 			router.post(
 				"/fetch" + (name || ""),
 				ensure("ensure" + final_name),
-				async (req, res) => {
+				asyncRoute(async (req, res) => {
 					let q = Schema.findOne(
 						(waw["query" + final_name] &&
 							waw["query" + final_name](req, res)) || {
@@ -242,7 +255,7 @@ module.exports = function (waw) {
 					}
 					const doc = await q.exec();
 					res.json(waw.resp(doc, 200, "Successful"));
-				}
+				})
 			);
 		};
 		if (Array.isArray(crud.fetch)) {
@@ -259,7 +272,7 @@ module.exports = function (waw) {
 			router.post(
 				"/update" + (upd.name || ""),
 				ensure("ensure" + final_name),
-				async (req, res) => {
+				asyncRoute(async (req, res) => {
 					let q = Schema.findOne(
 						(waw["query" + final_name] &&
 							waw["query" + final_name](req, res)) || {
@@ -276,8 +289,8 @@ module.exports = function (waw) {
 						doc[upd.keys[i]] = req.body[upd.keys[i]];
 						doc.markModified(upd.keys[i]);
 					}
-					save(doc, res, crudName + "_update");
-				}
+					await save(doc, res, crudName + "_update");
+				})
 			);
 		};
 		if (Array.isArray(crud.update)) {
@@ -299,7 +312,7 @@ module.exports = function (waw) {
 			router.post(
 				"/unique" + (upd.name || ""),
 				ensure("ensure" + final_name),
-				async (req, res) => {
+				asyncRoute(async (req, res) => {
 					const document = await Schema.findOne(
 						(waw["query" + final_name] &&
 							waw["query" + final_name](req, res)) || {
@@ -340,7 +353,7 @@ module.exports = function (waw) {
 							)
 						);
 					}
-				}
+				})
 			);
 		};
 		if (Array.isArray(crud.unique)) {
@@ -357,7 +370,7 @@ module.exports = function (waw) {
 			router.post(
 				"/delete" + name,
 				ensure("ensure" + final_name),
-				async (req, res) => {
+				asyncRoute(async (req, res) => {
 					let q = Schema.findOne(
 						(waw["query" + final_name] &&
 							waw["query" + final_name](req, res)) || {
@@ -382,7 +395,7 @@ module.exports = function (waw) {
 					);
 					waw.emit(crudName + "_delete", doc);
 					res.json(waw.resp(true, 200, "Successful"));
-				}
+				})
 			);
 		};
 		if (crud.delete) {

@@ -98,9 +98,12 @@ module.exports = async function (waw) {
 		}
 	}
 
+	waw.mongoConnected = false;
+	mongoose.set('bufferCommands', false);
+
 	if (mongoose.connection.readyState === 0 && waw.mongoUrl) {
 		mongoose.connection.on("error", (err) => {
-			console.error("[mongo] connection error:", err);
+			console.error("[mongo] connection error:", err.message);
 		});
 
 		mongoose.connection.on("connected", () => {
@@ -109,13 +112,20 @@ module.exports = async function (waw) {
 
 		mongoose.connection.on("disconnected", () => {
 			console.warn("[mongo] disconnected");
+			waw.mongoConnected = false;
 		});
 
-		await waw.mongoose.connect(waw.mongoUrl);
+		try {
+			await waw.mongoose.connect(waw.mongoUrl, { serverSelectionTimeoutMS: 5000 });
+			waw.mongoConnected = true;
+		} catch (err) {
+			console.error("[mongo] failed to connect:", err.message);
+			console.warn("[mongo] server will continue without MongoDB — mongo-dependent features will return errors");
+		}
 	}
 
 	// Session store (connect-mongo export compatibility)
-	if (waw.mongoUrl) {
+	if (waw.mongoConnected) {
 		const MongoStore = require("connect-mongo");
 
 		store = (MongoStore?.default ?? MongoStore).create({ mongoUrl: waw.mongoUrl });
