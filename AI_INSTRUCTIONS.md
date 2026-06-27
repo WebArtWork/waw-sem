@@ -1,1 +1,26 @@
-waw-sem is the server engine module for the waw platform that turns an ordered set of modules into a running backend by initializing Express + HTTP, optional MongoDB + session middleware, Socket.IO, and a convention-based CRUD engine through the shared `waw` context. When loaded at runtime, it sets up `waw.app`, `waw.server`, and `waw.express`, provides `waw.router(basePath)` for mounting routers, and defines common helpers including `waw.ensure(req,res,next)` and `waw.role(roles, middleware)` for authorization gating, plus lightweight helpers like `waw.next` and `waw.block`. Sem provides a `/status` endpoint returning `true`, and optionally serves a favicon when `waw.config.icon` exists. If `waw.config.mongo` is configured, Sem builds `waw.mongoUrl`, connects Mongoose, and configures Connect-Mongo session storage; it always installs `express-session` middleware and maintains weekly-rotating session secrets persisted in the project `server.json` under `secretKeys` as `{ key, createdAt }` with up to 5 active keys. Sem initializes Socket.IO on `waw.server` and exposes `waw.socket.io`, `waw.socket.emit(to, message, room?)`, and `waw.socket.add(fn)`, and by default forwards `create`, `update`, `unique`, and `delete` socket events to other clients. Sem provides `waw.crud` with `config`, `register`, and `finalize` to generate endpoints under `/api/<crudName>` and to wire per-action hooks (required fields, ensure, query, sort/skip/limit, select, populate) onto the `waw` object using predictable naming conventions. At startup, Sem loads all module files ending with `collection.js` first and then all files ending with `api.js`, then calls `waw.crud.finalize()` and starts listening on `waw.config.port` (default `8080`). Sem also exposes a thin CLI that provides `waw add` and `waw a` for scaffolding new modules using the Sem module template.
+# waw-sem — AI agent guide
+
+**Purpose:** the server engine. It turns an ordered set of modules into a running backend by initializing Express + HTTP, optional MongoDB + sessions, Socket.IO, and a convention-based CRUD engine, all exposed through the shared `waw` context.
+
+## How a backend module contributes (the conventions to follow)
+At startup `index.js` loads, in module order, every file ending with `collection.js` first, then every file ending with `api.js`, each invoked as `await require(file)(waw)`. So:
+- Put model/schema registration in a `*.collection.js` (sets `waw.<CapitalName>` or exports a Mongoose model).
+- Put route mounting in a `*.api.js` using `waw.router(basePath)`.
+- Declarative CRUD goes in the module's `module.json` `crud` config; `waw.crud.finalize()` registers it after all files load.
+
+## Key `waw` API to use
+- HTTP: `waw.app`, `waw.server`, `waw.express`, `waw.cors`, `waw.router(basePath)`.
+- Auth/guards: `waw.ensure(req,res,next)` (requires `req.user`), `waw.role(roles, middleware?)` (gates on `req.user.is[role]`), plus `waw.next` / `waw.block`. `waw.resp(body)` is the JSON wrapper used by responses.
+- Mongo: `waw.mongoose`, `waw.mongoUrl`, `waw.mongoConnected`, `waw.store`. Config via `waw.config.mongo` (string URI, `{uri}`, or builder fields `srv/host/hosts/port/user/pass/db/options`).
+- Sockets: `waw.socket.io`, `waw.socket.emit(event, payload, room?)`, `waw.socket.add(fn)`.
+- CRUD: `waw.crud.config(part, config)` registers per-action hooks (`required`, `ensure`, `query`, `sort`, `skip`, `limit`, `select`, `populate`) stored on `waw` as `<hook>_<action>_<part>[_<name>]`; `waw.crud.register(crud, part, unique?)` mounts `/api/<crudName>/{create,get,fetch,update,unique,delete}`.
+
+## Behavior to keep in mind
+- The server keeps running even if MongoDB fails to connect (connect timeout 5s, `bufferCommands` off) — Mongo-dependent routes will then error.
+- Session middleware is installed twice: an initial one in `util.express` and the store-backed, weekly-rotating one in `util.mongo` (secrets persisted in `server.json` under `secretKeys`, max 5).
+- CRUD endpoints are conditional on config; default queries scope by `moderators`/`author` of `req.user`; create/update/delete emit `waw.emit('<crudName>_<action>', doc)`.
+- A missing schema file logs a warning and skips that resource instead of crashing. A global error middleware returns `500` with `waw.resp(false)`.
+- Default listen port is `8080` (`waw.config.port`). Body limit is 10mb.
+
+## CLI
+- `waw add <module>` / `waw a` — scaffold a backend module into the project's modules dir from `module/default/` (provides `collection.js` + `api.js` + `module.json` starters).
