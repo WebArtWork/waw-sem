@@ -58,7 +58,7 @@ module.exports = function (waw) {
 			if (required) {
 				for (let i = 0; i < required.length; i++) {
 					if (!req.body[required[i]]) {
-						return res.json(
+						return res.status(422).json(
 							waw.resp(
 								null,
 								410,
@@ -137,7 +137,7 @@ module.exports = function (waw) {
 				const final_name = "_create_" + crudName;
 
 				if (typeof doc.create === "function") {
-					doc.create(req.body, req.user, waw);
+					await doc.create(req.body, req.user, waw);
 				}
 
 				if (typeof waw["query" + final_name] === "function") {
@@ -254,6 +254,10 @@ module.exports = function (waw) {
 						q.populate(populate);
 					}
 					const doc = await q.exec();
+
+					if (!doc) {
+						return res.status(404).json(waw.resp(false, 404, "Not found"));
+					}
 					res.json(waw.resp(doc, 200, "Successful"));
 				})
 			);
@@ -284,6 +288,10 @@ module.exports = function (waw) {
 						q.select(waw["select" + final_name](req, res));
 					}
 					const doc = await q.exec();
+
+					if (!doc) {
+						return res.status(404).json(waw.resp(false, 404, "Not found"));
+					}
 
 					for (var i = 0; i < upd.keys.length; i++) {
 						doc[upd.keys[i]] = req.body[upd.keys[i]];
@@ -322,7 +330,7 @@ module.exports = function (waw) {
 					);
 
 					if (!document) {
-						return res.json(waw.resp(false, 401, "No found"));
+						return res.status(404).json(waw.resp(false, 404, "Not found"));
 					}
 
 					const countQuery = {
@@ -386,6 +394,9 @@ module.exports = function (waw) {
 						q.populate(populate);
 					}
 					const doc = await q.exec();
+					if (!doc) {
+						return res.status(404).json(waw.resp(false, 404, "Not found"));
+					}
 					await Schema.deleteOne(
 						(waw["query" + final_name] &&
 							waw["query" + final_name](req, res)) || {

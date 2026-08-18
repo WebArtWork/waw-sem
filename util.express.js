@@ -79,7 +79,7 @@ module.exports = function (waw) {
 	};
 	waw.ensure = (req, res, next) => {
 		if (req.user) next();
-		else res.json(waw.resp(false));
+		else res.status(401).json(waw.resp(false));
 	};
 
 	waw.role = function (roles, middleware) {

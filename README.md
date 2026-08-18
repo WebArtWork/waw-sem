@@ -19,7 +19,7 @@ When [`index.js`](index.js) runs, it performs these steps in order:
 5. Loads every module file ending with `collection.js` (in module order), `await require(file)(waw)`
 6. Loads every module file ending with `api.js` (in module order), `await require(file)(waw)`
 7. Calls `waw.crud.finalize()` to register CRUD endpoints from module configs
-8. Registers a global Express error-handling middleware that logs the error and responds `500` with `waw.resp(false)`
+8. Registers a global Express error-handling middleware that maps validation, cast, and duplicate-key failures to `422`, `400`, and `409`; unexpected failures are logged and respond `500` with `waw.resp(false)`
 9. Registers a `process.on('unhandledRejection')` safety-net handler
 10. Starts listening on `waw.config.port` (defaults to `8080`)
 

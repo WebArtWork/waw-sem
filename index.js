@@ -27,8 +27,16 @@ module.exports = async function (waw) {
 
 	// catch async errors from express route handlers
 	waw.app.use((err, req, res, next) => {
-		console.error('[sem] route error:', err.message);
-		res.status(500).json(waw.resp(false));
+		const status =
+			err.statusCode ||
+			err.status ||
+			(err.name === 'ValidationError' ? 422 : err.name === 'CastError' ? 400 : err.code === 11000 ? 409 : 500);
+
+		if (status >= 500) {
+			console.error('[sem] route error:', err.message);
+		}
+
+		res.status(status).json(waw.resp(false, status, err.message));
 	});
 
 	// safety net for unhandled rejections from project api.js files

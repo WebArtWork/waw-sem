@@ -19,7 +19,7 @@ At startup `index.js` loads, in module order, every file ending with `collection
 - The server keeps running even if MongoDB fails to connect (connect timeout 5s, `bufferCommands` off) — Mongo-dependent routes will then error.
 - Session middleware is installed twice: an initial one in `util.express` and the store-backed, weekly-rotating one in `util.mongo` (secrets persisted in `server.json` under `secretKeys`, max 5).
 - CRUD endpoints are conditional on config; default queries scope by `moderators`/`author` of `req.user`; create/update/delete emit `waw.emit('<crudName>_<action>', doc)`.
-- A missing schema file logs a warning and skips that resource instead of crashing. A global error middleware returns `500` with `waw.resp(false)`.
+- A missing schema file logs a warning and skips that resource instead of crashing. CRUD routes return `404` for missing documents and `422` for missing required fields. The global error middleware maps Mongoose validation, cast, and duplicate-key errors to `422`, `400`, and `409`; unexpected failures return `500` with `waw.resp(false)`.
 - Default listen port is `8080` (`waw.config.port`). Body limit is 10mb.
 
 ## CLI
